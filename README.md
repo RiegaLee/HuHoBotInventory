@@ -124,63 +124,9 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 | `render.theme` | `faithful32x` | 默认渲染主题 |
 | `render.max-output-bytes` | `4194304` | 单张输出图片大小上限 |
 
-## 从源码构建
+## 开发者构建
 
-普通服主只需下载 Release JAR。源码构建面向希望开发或移植 Addon 的维护者。
-
-### 1. 准备 HuHoBot 编译依赖
-
-准备兼容版本的：
-
-- `huhobot-api-*.jar`
-- `common-Bot-*.jar`
-
-复制 `gradle.properties.example` 为 `gradle.properties` 并填写实际路径。该本地文件不会被 Git 提交。
-
-### 2. 构建离线资产工具
-
-此步骤不要求已经存在本地物品缓存：
-
-```powershell
-.\gradlew.bat clean vanillaAssetsToolJar
-```
-
-工具输出：
-
-```text
-build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar
-```
-
-### 3. 导入用户自行取得的资源
-
-本项目 `1.21.1` 的已验收资源基线为 Minecraft Java Edition `26.1.2` 与 Faithful 32x `26.2`。请自行从合法来源取得客户端 JAR 和 Faithful 压缩包，然后把下面两个路径占位符替换为文件的实际位置。文件可以放在任意磁盘或目录，不要求使用 D 盘。
-
-```text
-java -jar build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar import "<Minecraft 客户端 JAR 路径>" "data/imported-assets/vanilla" "26.1.2" "<Faithful 32x 压缩包路径>"
-```
-
-已验收输入会生成缓存目录：
-
-```text
-data/imported-assets/vanilla/26.1.2-B1B315857266-MB7-PD1337875
-```
-
-输入文件或哈希不同会产生不同缓存键；不要把未经复验的缓存伪装成正式基线。
-
-### 4. 构建 Addon
-
-```powershell
-.\gradlew.bat clean build
-```
-
-输出文件：
-
-```text
-build/libs/HuHoBot-MinecraftInventory-1.21.1.jar
-build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar
-```
-
-`build` 会运行自动测试、内置资源完整性检查和 JAR 边界检查，确保不打包 HuHoBot Core、QQ SDK、SkinsRestorer 实现、服务端运行数据、Minecraft 客户端 JAR 或开发审计文件。
+普通服主不需要执行素材导入或编译命令，直接下载 Release 中的插件 JAR 即可。需要修改、移植或从源码构建时，请阅读 [BUILDING.md](BUILDING.md)。
 
 ## 第三方资源与非商业限制
 
