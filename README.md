@@ -35,78 +35,55 @@ HuHoBot Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 ## 安装
 
-### 1. 确认服务端环境
+### 快速安装
 
-- 使用 Spigot/Paper 服务端，并先确保 HuHoBot-Penguin 本体能够独立正常启动。
-- 主分支与 AGENT 分支只能选择实际使用的一套，不要把两个 HuHoBot-Penguin 本体同时放进同一服务器。
-- Inventory 编译为 Java 8 字节码，但启动服务器所需的 Java 版本仍以服务端和 HuHoBot-Penguin 的要求为准。
-
-Inventory 必须依赖 Bukkit 插件名为 `HuHoBotPenguin` 的本体。缺少该插件时，服务端会拒绝加载 Inventory。
-
-### 2. 选择账号绑定方式
-
-#### HuHoBot-Penguin 主分支
-
-如需普通玩家查询自己的背包，尤其是离线背包，请同时安装：
-
-1. [AuthMeReloaded](https://github.com/AuthMe/AuthMeReloaded)，负责离线服玩家登录验证；
-2. [HuHoBot GameAuthCode](https://github.com/RiegaLee/HuHoBotGameAuthCode)，负责经过游戏内验证的 QQ 与 Minecraft 多账号绑定；
-3. HuHoBot Inventory。
-
-玩家完成 AuthMe 登录后，在游戏内执行 `/authcode` 获取六位验证码，再在 QQ 群发送 `/绑定 <验证码>`。不需要先在 QQ 发起绑定。每个 QQ 最多可绑定两个 Minecraft 账号。
-
-#### HuHoBot-Penguin AGENT 分支
-
-Inventory 可以读取 AGENT 分支内置的单账号绑定，不要求另外安装 GameAuthCode。但这种旧式记录只包含玩家名，默认只允许玩家在线时查询；要安全读取持久化离线快照，应使用能够证明账号所有权的 GameAuthCode 绑定。
-
-AuthMe 和 GameAuthCode 都不是 Inventory 本身的硬依赖；管理员只查询在线玩家时可以不安装它们。
-
-### 3. 下载并安装
+安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 主分支或 AGENT 分支。
 
 1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.1.jar`。
-2. 将 JAR 放入 Minecraft 服务器的 `plugins/` 目录；升级时用新 JAR 替换旧版本即可，原有配置和快照目录可以保留。
-3. 如需显示玩家当前皮肤，可以另外安装 [SkinsRestorer](https://github.com/SkinsRestorer/SkinsRestorer)。
-4. 启动或重启服务器。
+2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
+3. 重启服务器。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.21.1`，就表示安装成功。
 
-### 4. 首次启动与检查
+首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 
-1. 正常启动服务器，等待插件全部加载完成；不要使用 `/reload` 或第三方热重载插件。
-2. 检查控制台没有 `UnknownDependency`、`NoClassDefFoundError` 或 Inventory 启动失败信息。
-3. 在 HuHoBot 的“已安装扩展”列表中确认出现：
+### 我还需要安装哪些插件？
 
-```text
-HuHoBotInventory 1.21.1
-作者：RiegaLee
-说明：为 HuHoBot 提供 Minecraft 背包与末影箱图片查询
-```
+| 使用的 HuHoBot 版本 | 建议安装 |
+| --- | --- |
+| HuHoBot-Penguin 主分支 | Inventory、[AuthMeReloaded](https://github.com/AuthMe/AuthMeReloaded)、[GameAuthCode](https://github.com/RiegaLee/HuHoBotGameAuthCode) |
+| HuHoBot-Penguin AGENT 分支 | 只安装 Inventory 即可使用内置单账号绑定；需要双账号或离线查询时，再安装 AuthMe 和 GameAuthCode |
 
-4. 首次启动后会生成配置文件：
+Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，GameAuthCode 用来把经过验证的 Minecraft 账号绑定到 QQ。
 
-```text
-plugins/HuHoBotInventory/config.yml
-```
+### 绑定游戏账号
 
-默认配置已经启用背包、末影箱和离线快照。修改配置后请再次完整重启服务器。
+使用 GameAuthCode 时：
 
-### 5. 建立首份离线快照
+1. 玩家进入服务器并完成 AuthMe 登录。
+2. 在游戏内输入 `/authcode`，获取六位验证码。
+3. 回到 QQ 群发送 `/绑定 <验证码>`。
+4. 机器人提示绑定成功后，即可查询背包。绑定第二个账号时，用另一个游戏账号重复以上步骤。
 
-1. 让已正确绑定的玩家至少登录服务器一次，并完成 AuthMe 登录（如已安装）。
-2. 玩家退出、到达默认的 300 秒周期保存时间，或服务器正常关闭时，Inventory 会保存背包和末影箱快照。
-3. 玩家离线后在 QQ 群发送 `/背包` 和 `/末影箱`，确认图片顶部出现 `Offline Snapshot` 与快照时间。
+使用 AGENT 分支内置绑定的服主，可以继续使用原有绑定方式；这种绑定默认支持玩家在线时查询。
 
-服务器被强制结束进程时，尚未到周期保存时间的最新改动可能来不及写入；部署和维护时应使用正常的 `stop` 流程。
+### 开始查询
 
-### 6. 最小验收流程
+绑定完成后，在 QQ 群发送：
 
-安装完成后依次检查：
+- `/背包`：查看背包；
+- `/末影箱`：查看末影箱。
 
-1. 玩家在线时发送 `/背包`，能收到当前背包图片。
-2. 发送 `/末影箱`，能收到独立的末影箱图片。
-3. 双账号用户发送 `/背包`，能看到上下排列的账号选择按钮；按钮不可用时可发送 `/背包 1` 或 `/背包 2`。
-4. 等待账号选择超过 60 秒再点击，机器人应提示选择已超时。
-5. 玩家正常退出并完整重启服务器，在玩家保持离线时再次查询，仍能读取最近一次可信快照。
+绑定了两个账号时，机器人会显示账号选择按钮。按钮不能使用时，也可以发送 `/背包 1`、`/背包 2`、`/末影箱 1` 或 `/末影箱 2`。
 
-若提示“未经游戏内验证”或“暂时没有离线快照”，请先确认玩家使用的是经过验证的绑定，并已至少登录和正常保存过一次。
+### 离线查询说明
+
+玩家至少需要成功登录服务器一次，Inventory 才能保存背包和末影箱快照。快照会在玩家退出、服务器正常关闭或定时保存时更新。
+
+如果机器人提示“未经游戏内验证”或“暂时没有离线快照”，请让玩家完成 GameAuthCode 绑定并登录服务器一次。AGENT 分支原有的旧式绑定默认只能查询在线玩家。
+
+### 可选：显示玩家皮肤
+
+如需优先显示玩家当前使用的皮肤，可以安装 [SkinsRestorer](https://github.com/SkinsRestorer/SkinsRestorer)。不安装也能正常查询背包和末影箱。
 
 ## QQ 群命令
 
