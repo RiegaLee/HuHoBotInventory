@@ -61,27 +61,12 @@ Inventory 可以读取 AGENT 分支内置的单账号绑定，不要求另外安
 
 AuthMe 和 GameAuthCode 都不是 Inventory 本身的硬依赖；管理员只查询在线玩家时可以不安装它们。
 
-### 3. 下载并放置插件
+### 3. 下载并安装
 
-1. 完整停止服务器。
-2. 首次安装前建议备份整个 `plugins/` 目录；升级时至少备份 `plugins/HuHoBotInventory/`。
-3. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.1.jar`。不要下载 GitHub 自动生成的 `Source code (zip)` 或 `Source code (tar.gz)` 作为插件。
-4. 删除或移走 `plugins/` 中旧版本的 Inventory JAR，避免同一插件存在多个版本；不要删除已有的 `plugins/HuHoBotInventory/` 数据目录。
-5. 把 `HuHoBot-MinecraftInventory-1.21.1.jar` 直接放进服务端的 `plugins/` 目录，不要解压，也不要放进 HuHoBot-Penguin 的数据目录。
-6. 如需显示玩家当前皮肤，可选安装 [SkinsRestorer](https://github.com/SkinsRestorer/SkinsRestorer)。未安装时会使用可用的皮肤来源或本地默认皮肤，不影响背包查询主体功能。
-
-示例目录：
-
-```text
-server/
-├─ server.jar
-└─ plugins/
-   ├─ HuHoBot-Penguin_Spigot-<版本>.jar
-   ├─ HuHoBot-MinecraftInventory-1.21.1.jar
-   ├─ AuthMe-<版本>.jar                 # 主分支绑定方案需要
-   ├─ HuHoBot-GameAuthCode-1.5.0.jar   # 主分支绑定方案需要
-   └─ SkinsRestorer.jar                # 可选
-```
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.1.jar`。
+2. 将 JAR 放入 Minecraft 服务器的 `plugins/` 目录；升级时用新 JAR 替换旧版本即可，原有配置和快照目录可以保留。
+3. 如需显示玩家当前皮肤，可以另外安装 [SkinsRestorer](https://github.com/SkinsRestorer/SkinsRestorer)。
+4. 启动或重启服务器。
 
 ### 4. 首次启动与检查
 
