@@ -23,13 +23,13 @@
 ### Official Upstream Embedded Host
 
 - 将稳定 API 1.3、owner-scoped 服务宿主、官方命令桥、文本/内存图片网关和动态绑定门面直接打入 Inventory JAR；不再要求独立兼容桥，也不修改官方 HuHoBot 主体。
-- 同一 JAR 兼容官方 Mainline 1.2.2 与 AGENT 1.6.1；Mainline 可由 GameAuthCode 1.4.0 提供双账号绑定，AGENT 可读取内置单账号记录。
+- 同一 JAR 兼容 HuHoBot-Penguin 主分支 1.2.2 与 HuHoBot-Penguin AGENT 分支 1.6.1；主分支可由 GameAuthCode 1.4.0 提供双账号绑定，AGENT 分支可读取内置单账号记录。
 - AGENT 旧绑定只含玩家名，映射为 `LEGACY_UNVERIFIED`：默认允许在线本人查询，不冒充可信离线绑定。
 
 ### Validation
 
 - Inventory 104/104、GameAuthCode 12/12 自动测试及 clean build 通过。
-- 官方 Mainline 1.2.2 完成真实 QQ 双账号按钮、在线/离线 PNG 与超时；AGENT 1.6.1 完成 AddonManager、原生绑定在线 PNG 与离线拒绝。AGENT 发布包的 Bukkit 元数据仍自报 1.6.0，按上游版本遗漏记录；本地 1.6.1 另通过隔离 Paper 启停与自动兼容门禁。1.21.0 状态提升为 `FULL PASS`。
+- HuHoBot-Penguin 主分支 1.2.2 完成真实 QQ 双账号按钮、在线/离线 PNG 与超时；HuHoBot-Penguin AGENT 分支 1.6.1 完成 AddonManager、原生绑定在线 PNG 与离线拒绝。AGENT 发布包的 Bukkit 元数据仍自报 1.6.0，按上游版本遗漏记录；本地 1.6.1 另通过隔离 Paper 启停与自动兼容门禁。1.21.0 状态提升为 `FULL PASS`。
 
 ## 1.20.3 — 2026-09-05
 
