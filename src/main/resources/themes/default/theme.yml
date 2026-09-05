@@ -1,0 +1,19 @@
+format-version: 1
+id: default
+name: Original Slate Inventory
+version: 1.0.0
+minecraft-version: "theme-neutral"
+asset-pack-version: "HuHoBot original 2026-08-24"
+background: background.png
+layout: layout.yml
+textures-directory: items
+overrides-directory: overrides/items
+special-variants-directory: special-variants
+fallback-texture: items/unknown.png
+license: LICENSE.txt
+source: SOURCE.txt
+
+render:
+  draw-title: true
+  draw-slot-backgrounds: true
+  texture-interpolation: bilinear

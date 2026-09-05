@@ -1,0 +1,4 @@
+# Copy this file to gradle.properties and point both entries at JARs built from
+# a compatible HuHoBot source checkout. gradle.properties is intentionally ignored.
+huhobotApiJar=../PenguinClient-master/huhobot-api/build/libs/huhobot-api-1.2.1.jar
+huhobotQqSdkJar=../PenguinClient-master/common/Bot/build/libs/common-Bot-1.2.2.jar

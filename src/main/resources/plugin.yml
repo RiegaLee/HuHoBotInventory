@@ -1,0 +1,8 @@
+name: HuHoBotInventory
+version: '${version}'
+main: cn.huohuas001.huhobot.inventory.MinecraftInventoryPlugin
+api-version: '1.18'
+depend: [HuHoBotPenguin]
+softdepend: [SkinsRestorer]
+description: 为 HuHoBot 提供 Minecraft 背包与末影箱图片查询
+authors: [RiegaLee]

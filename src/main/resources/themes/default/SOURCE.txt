@@ -1,0 +1,11 @@
+Generated specifically for HuHoBot Minecraft Inventory on 2026-08-24 with OpenAI's
+built-in image generation tool, then resized/cropped for deterministic Java2D rendering.
+
+Background prompt summary:
+Original dark slate, blue-gray pixel-art inventory panel; border only; no slots, items,
+text, logos, trademarks, watermark, Minecraft/Mojang or CozyUI texture imitation.
+
+Icon atlas prompt summary:
+Eight original pixel-art UI icons in a 4x2 atlas: stone, cyan gem, fantasy sword,
+fantasy pickaxe, golden-red apple, firework, bread, and purple unknown cube; transparent
+padding; no text, logos, trademarks, watermark, or copied game textures.

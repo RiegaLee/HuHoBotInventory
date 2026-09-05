@@ -1,0 +1,21 @@
+format-version: 1
+id: faithful32x
+name: Faithful 32x Inventory
+version: 1.8.0
+minecraft-version: "Faithful assets 26.2; selected keys tested with Paper 1.21.11"
+asset-pack-version: "Faithful 32x June 2026 / 26.2; MB7 native-64 3D icons; centered Faithful shield; compact Ender Chest GUI; PV8 voxel skin layers; creative-style inventory"
+background: background.png
+layout: layout.yml
+textures-directory: assets
+overrides-directory: overrides/items
+special-variants-directory: special-variants
+runtime-composites-directory: runtime-composites/items/minecraft
+fallback-texture: fallback/unknown.png
+license: LICENSE.txt
+source: SOURCES.md
+manifest: ASSET_MANIFEST.tsv
+
+render:
+  draw-title: false
+  draw-slot-backgrounds: false
+  texture-interpolation: nearest

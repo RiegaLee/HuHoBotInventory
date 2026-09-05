@@ -1,0 +1,55 @@
+format-version: 1
+
+canvas:
+  width: 704
+  height: 600
+
+slot:
+  size: 64
+  item-size: 52
+
+title:
+  x: 40
+  y: 58
+
+storage:
+  start-x: 32
+  start-y: 260
+  columns: 9
+  rows: 3
+  step-x: 72
+  step-y: 72
+
+hotbar:
+  start-x: 32
+  start-y: 500
+  columns: 9
+  rows: 1
+  step-x: 72
+  step-y: 72
+
+armor:
+  head: {x: 32, y: 120}
+  chest: {x: 104, y: 120}
+  legs: {x: 176, y: 120}
+  feet: {x: 248, y: 120}
+
+offhand:
+  x: 608
+  y: 120
+
+player-preview:
+  x: 330
+  y: 80
+  width: 120
+  height: 160
+
+quantity:
+  offset-x: 58
+  offset-y: 58
+
+durability:
+  offset-x: 7
+  offset-y: 56
+  width: 50
+  height: 4

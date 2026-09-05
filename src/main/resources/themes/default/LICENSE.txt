@@ -1,0 +1,7 @@
+Default theme asset notice
+
+The background and item icons in this directory are original assets generated for this
+HuHoBot Inventory addon on 2026-08-24. They do not copy or embed Mojang/Minecraft or
+CozyUI+ textures. They may be distributed and modified under the same license terms as
+this addon project. Third-party themes and locally imported game assets are outside this
+notice and must carry their own source and license records.

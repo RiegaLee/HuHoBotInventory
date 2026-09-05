@@ -1,0 +1,100 @@
+config-version: 8
+
+command:
+  name: inventorytest
+  aliases:
+    - invtest
+  publish-to-menu: false
+
+online-command:
+  name: inventory
+  aliases:
+    - inv
+    - 背包
+  publish-to-menu: false
+
+ender-chest-command:
+  name: enderchest
+  aliases:
+    - ec
+    - 末影箱
+  publish-to-menu: false
+
+mock:
+  player-name: MockPlayer
+  source-server: mock-paper
+
+online:
+  source-server: local-paper
+  cooldown-seconds: 3
+  image-file-name: inventory.png
+  optional-caption: "Inventory: %player%"
+
+ender-chest:
+  enabled: true
+  source-server: local-paper
+  cooldown-seconds: 3
+  image-file-name: ender-chest.png
+  optional-caption: "Ender Chest: %player%"
+
+binding:
+  # Compatibility only: existing PenguinAgent name bindings have not yet proved account ownership.
+  allow-legacy-unverified: true
+
+offline-inventory:
+  enabled: true
+  # Persistent snapshots require verified identity by default, even when live legacy lookup remains compatible.
+  allow-legacy-unverified: false
+  directory: data/offline-snapshots
+  periodic-save-seconds: 300
+
+offline-ender-chest:
+  enabled: true
+  # Kept separate from inventory snapshots so the two data sets can never overwrite each other.
+  allow-legacy-unverified: false
+  directory: data/offline-ender-chest-snapshots
+  periodic-save-seconds: 300
+
+assets:
+  vanilla:
+    # The JAR already contains the accepted MB7 asset pack. Enable this only to prefer an
+    # advanced cache produced by the separate offline Assets Tool.
+    prefer-external: false
+    cache-directory: data/imported-assets/vanilla
+    minecraft-jar: ""
+    auto-import: false
+
+player-preview:
+  enabled: true
+  # Uses the server's current SkinsRestorer skin when available; otherwise an original local default skin.
+  provider: auto
+  mode: 3d
+  cache-directory: cache/skins
+  allow-texture-downloads: true
+  connect-timeout-ms: 4000
+  read-timeout-ms: 8000
+
+render:
+  theme: faithful32x
+  max-output-bytes: 4194304
+  image-file-name: mock-inventory.png
+  optional-caption: "Mock inventory: %player%"
+
+messages:
+  failure: "背包图片生成或发送失败，请稍后再试"
+  usage: "用法：/背包，管理员可使用 /背包 <在线玩家名>"
+  player-offline: "玩家当前不在线，暂时无法查询背包。"
+  player-state-changed: "玩家状态发生变化，请重新查询。"
+  not-authorized: "权限不足，无法查询在线玩家背包。"
+  cooldown: "查询过于频繁，请稍后再试。"
+  binding-required: "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。"
+  binding-verification-required: "当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。"
+  offline-snapshot-missing: "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。"
+  offline-legacy-denied: "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。"
+  ender-chest-failure: "末影箱图片生成或发送失败，请稍后再试。"
+  ender-chest-usage: "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>"
+  ender-chest-player-offline: "玩家当前不在线，且暂时没有可用的末影箱快照。"
+  ender-chest-player-state-changed: "玩家状态发生变化，请重新查询末影箱。"
+  ender-chest-not-authorized: "权限不足，无法查询其他玩家的末影箱。"
+  ender-chest-offline-snapshot-missing: "暂时没有该玩家的离线末影箱快照，请等待玩家至少登录服务器一次。"
+  ender-chest-offline-legacy-denied: "当前旧版绑定未完成游戏内验证，不能读取持久化离线末影箱快照。"
