@@ -153,14 +153,10 @@ build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar
 
 ### 3. 导入用户自行取得的资源
 
-本项目 `1.21.1` 的已验收资源基线为 Minecraft Java Edition `26.1.2` 与 Faithful 32x `26.2`。请自行从合法来源取得客户端 JAR 和 Faithful 压缩包，然后执行：
+本项目 `1.21.1` 的已验收资源基线为 Minecraft Java Edition `26.1.2` 与 Faithful 32x `26.2`。请自行从合法来源取得客户端 JAR 和 Faithful 压缩包，然后把下面两个路径占位符替换为文件的实际位置。文件可以放在任意磁盘或目录，不要求使用 D 盘。
 
-```powershell
-java -jar build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar import `
-  "D:/path/to/26.1.2-client.jar" `
-  "data/imported-assets/vanilla" `
-  "26.1.2" `
-  "D:/path/to/Faithful-32x-26.2.zip"
+```text
+java -jar build/libs/HuHoBot-InventoryAssetsTool-1.21.1.jar import "<Minecraft 客户端 JAR 路径>" "data/imported-assets/vanilla" "26.1.2" "<Faithful 32x 压缩包路径>"
 ```
 
 已验收输入会生成缓存目录：
