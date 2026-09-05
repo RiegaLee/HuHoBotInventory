@@ -1,4 +1,7 @@
-config-version: 8
+config-version: 9
+
+# 仅排查问题时开启；关闭时普通查询不输出调试日志。
+debug: false
 
 command:
   name: inventorytest

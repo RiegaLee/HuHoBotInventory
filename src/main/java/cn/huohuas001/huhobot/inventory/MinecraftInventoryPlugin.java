@@ -104,11 +104,14 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                     "Configured theme " + config.getThemeId() + " contains descriptor id " + theme.getId()
                 );
             }
-            theme.getTextures().setResolutionReporter(trace -> {
-                String message = "[InventoryAssets] " + trace.toLogMessage();
-                if (trace.getSource() == TextureResolver.Source.UNKNOWN) getLogger().warning(message);
-                else getLogger().info(message);
-            });
+            if (config.isDebugEnabled()) {
+                theme.getTextures().setResolutionReporter(trace -> {
+                    String message = "[InventoryAssets] " + trace.toLogMessage();
+                    if (trace.getSource() == TextureResolver.Source.UNKNOWN) getLogger().warning(message);
+                    else getLogger().info(message);
+                });
+                getLogger().info("Inventory debug logging enabled");
+            }
             getLogger().info(
                 "Loaded Vanilla assets for Minecraft " + vanilla.getMinecraftVersion() +
                     " (" + vanilla.getGeneratedIcons() + "/" + vanilla.getTotalDefinitions() + " static icons)"
@@ -134,7 +137,9 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
             OfflineInventorySnapshotStore snapshotStore = null;
             if (config.isOfflineInventoryEnabled()) {
                 Path snapshotDirectory = configuredPath(config.getOfflineSnapshotDirectory());
-                snapshotStore = new OfflineInventorySnapshotStore(snapshotDirectory, getLogger());
+                snapshotStore = new OfflineInventorySnapshotStore(
+                    snapshotDirectory, getLogger(), config.isDebugEnabled()
+                );
                 snapshotManager = new OfflineInventorySnapshotManager(this, onlineSource, snapshotStore);
                 snapshotManager.start(config.getOfflinePeriodicSaveSeconds());
                 getLogger().info(
@@ -146,7 +151,9 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
             OfflineInventorySnapshotStore enderChestSnapshotStore = null;
             if (config.isEnderChestEnabled() && config.isOfflineEnderChestEnabled()) {
                 Path snapshotDirectory = configuredPath(config.getOfflineEnderChestSnapshotDirectory());
-                enderChestSnapshotStore = new OfflineInventorySnapshotStore(snapshotDirectory, getLogger());
+                enderChestSnapshotStore = new OfflineInventorySnapshotStore(
+                    snapshotDirectory, getLogger(), config.isDebugEnabled()
+                );
                 enderChestSnapshotManager = new OfflineInventorySnapshotManager(
                     this, enderChestSource, enderChestSnapshotStore
                 );

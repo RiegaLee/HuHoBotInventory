@@ -663,15 +663,17 @@ public final class InventoryCommand implements CommandHandler {
                     new IllegalStateException(diagnostic == null ? "no diagnostic" : diagnostic)
                 );
             } else {
-                logger.info(
-                    "Sent " + (mode == Mode.MOCK ? "mock" :
-                        metadata.getFreshness() == InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT
-                            ? "offline snapshot" : "online") +
-                        (mode == Mode.ENDER_CHEST ? " Ender Chest PNG for " : " inventory PNG for ") +
-                        snapshot.getPlayerName() + " " +
-                        rendered.getWidth() + "x" + rendered.getHeight() +
-                        " (" + rendered.getByteSize() + " bytes)"
-                );
+                if (config.isDebugEnabled()) {
+                    logger.info(
+                        "Sent " + (mode == Mode.MOCK ? "mock" :
+                            metadata.getFreshness() == InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT
+                                ? "offline snapshot" : "online") +
+                            (mode == Mode.ENDER_CHEST ? " Ender Chest PNG for " : " inventory PNG for ") +
+                            snapshot.getPlayerName() + " " +
+                            rendered.getWidth() + "x" + rendered.getHeight() +
+                            " (" + rendered.getByteSize() + " bytes)"
+                    );
+                }
                 result.complete(CommandResult.handled());
             }
         });

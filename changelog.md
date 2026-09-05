@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.21.2 — 2026-09-05
+
+### Quiet Logging by Default
+
+- 新增顶层配置项 `debug: false`，旧版配置会自动迁移到配置版本 9。
+- 默认不再为每个物品输出 `[InventoryAssets]` 素材解析日志。
+- 默认不再记录每次图片发送成功和每次离线快照磁盘读取成功。
+- 运行故障的警告、错误和必要的启动信息仍会保留；仅在排查问题时将 `debug` 改为 `true`。
+- 107/107 自动测试、Addon JAR 边界检查和资源工具 JAR 检查通过。
+
 ## 1.21.1 — 2026-09-05
 
 ### AGENT Addon Metadata

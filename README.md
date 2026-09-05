@@ -4,7 +4,7 @@ HuHoBot Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 - 作者：`RiegaLee`
 - 插件标识：`HuHoBotInventory`
-- 当前版本：`1.21.1`
+- 当前版本：`1.21.2`
 - 状态：`FULL PASS`
 
 正式构建请从仓库的 [Releases](../../releases) 页面下载，不要从第三方来源下载来历不明的 JAR。
@@ -39,10 +39,10 @@ HuHoBot Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 主分支或 AGENT 分支。
 
-1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.1.jar`。
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.2.jar`。
 2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
 3. 重启服务器。
-4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.21.1`，就表示安装成功。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.21.2`，就表示安装成功。
 
 首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 
@@ -115,6 +115,7 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 
 | 配置项 | 默认值 | 说明 |
 | --- | ---: | --- |
+| `debug` | `false` | 调试日志开关；排查问题时才需要开启 |
 | `online.cooldown-seconds` | `3` | 背包查询冷却 |
 | `ender-chest.cooldown-seconds` | `3` | 末影箱查询冷却 |
 | `offline-inventory.enabled` | `true` | 保存和读取离线背包快照 |

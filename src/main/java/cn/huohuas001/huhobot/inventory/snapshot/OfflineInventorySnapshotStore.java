@@ -37,11 +37,17 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
 
     private final Path root;
     private final Logger logger;
+    private final boolean debugEnabled;
     private final ExecutorService writer;
 
     public OfflineInventorySnapshotStore(Path root, Logger logger) {
+        this(root, logger, false);
+    }
+
+    public OfflineInventorySnapshotStore(Path root, Logger logger, boolean debugEnabled) {
         this.root = root.toAbsolutePath().normalize();
         this.logger = logger;
+        this.debugEnabled = debugEnabled;
         this.writer = Executors.newSingleThreadExecutor(new ThreadFactory() {
             @Override public Thread newThread(Runnable task) {
                 Thread thread = new Thread(task, "HuHoBotInventory-SnapshotWriter");
@@ -97,10 +103,12 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
                 ),
                 readSlot(yaml, "offhand", SlotType.OFFHAND, 0, schema)
             );
-            logger.info(
-                "[OfflineSnapshotStore] disk load snapshot found uuid=" + playerUuid +
-                    " capturedAt=" + snapshot.getCapturedAt() + " file=" + file
-            );
+            if (debugEnabled) {
+                logger.info(
+                    "[OfflineSnapshotStore] disk load snapshot found uuid=" + playerUuid +
+                        " capturedAt=" + snapshot.getCapturedAt() + " file=" + file
+                );
+            }
             return Optional.of(snapshot);
         } catch (Throwable error) {
             logger.log(Level.WARNING, "Ignoring corrupt offline inventory snapshot " + file, error);

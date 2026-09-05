@@ -17,7 +17,7 @@ class InventoryPluginConfigTest {
         yaml.set("online.cooldown-seconds", 5);
 
         assertTrue(InventoryPluginConfig.migrateFromVersion1(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals(5, yaml.getInt("online.cooldown-seconds"));
         assertEquals("inventory", yaml.getString("online-command.name"));
         assertEquals("inventory.png", yaml.getString("online.image-file-name"));
@@ -44,6 +44,7 @@ class InventoryPluginConfigTest {
         assertEquals("local-paper", config.getEnderChestSourceServer());
         assertEquals("ender-chest.png", config.getEnderChestImageFileName());
         assertTrue(config.isOfflineEnderChestEnabled());
+        assertFalse(config.isDebugEnabled());
         assertEquals("data/offline-ender-chest-snapshots", config.getOfflineEnderChestSnapshotDirectory());
         assertEquals(
             "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。",
@@ -60,7 +61,7 @@ class InventoryPluginConfigTest {
         yaml.set("assets", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertFalse(yaml.getBoolean("assets.vanilla.enabled"));
         assertFalse(yaml.getBoolean("assets.vanilla.prefer-external"));
         assertFalse(yaml.getBoolean("assets.vanilla.auto-import"));
@@ -79,7 +80,7 @@ class InventoryPluginConfigTest {
         yaml.set("messages.binding-verification-required", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertTrue(yaml.getBoolean("binding.allow-legacy-unverified"));
         assertFalse(yaml.getBoolean("assets.vanilla.enabled"));
     }
@@ -105,7 +106,7 @@ class InventoryPluginConfigTest {
         yaml.set("player-preview", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertTrue(yaml.getBoolean("player-preview.enabled"));
         assertEquals("auto", yaml.getString("player-preview.provider"));
         assertEquals("3d", yaml.getString("player-preview.mode"));
@@ -124,7 +125,7 @@ class InventoryPluginConfigTest {
         yaml.set("offline-inventory", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertFalse(yaml.getBoolean("player-preview.allow-texture-downloads"));
         assertEquals("3d", yaml.getString("player-preview.mode"));
         assertTrue(yaml.getBoolean("offline-inventory.enabled"));
@@ -142,12 +143,24 @@ class InventoryPluginConfigTest {
         yaml.set("messages.ender-chest-failure", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(8, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals("enderchest", yaml.getString("ender-chest-command.name"));
         assertEquals(java.util.Arrays.asList("ec", "末影箱"), yaml.getStringList("ender-chest-command.aliases"));
         assertEquals("data/offline-ender-chest-snapshots", yaml.getString("offline-ender-chest.directory"));
         assertEquals("末影箱图片生成或发送失败，请稍后再试。", yaml.getString("messages.ender-chest-failure"));
         assertTrue(InventoryPluginConfig.load(yaml).isEnderChestEnabled());
+    }
+
+    @Test
+    void debugLoggingIsOffByDefaultAndCanBeEnabledExplicitly() {
+        YamlConfiguration yaml = phaseOneConfig();
+        InventoryPluginConfig.migrateToCurrent(yaml);
+
+        assertFalse(yaml.getBoolean("debug"));
+        assertFalse(InventoryPluginConfig.load(yaml).isDebugEnabled());
+
+        yaml.set("debug", true);
+        assertTrue(InventoryPluginConfig.load(yaml).isDebugEnabled());
     }
 
     private static YamlConfiguration phaseOneConfig() {

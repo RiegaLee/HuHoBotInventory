@@ -17,6 +17,10 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,6 +28,35 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OfflineInventorySnapshotStoreTest {
+    @Test
+    void snapshotLoadsStayQuietUnlessDebugIsEnabled(@TempDir Path temp) throws Exception {
+        InventorySnapshot snapshot = new MockInventoryDataSource("paper-test").createSnapshot("QuietUser");
+        AtomicInteger infoLogs = new AtomicInteger();
+        Logger logger = Logger.getAnonymousLogger();
+        logger.setUseParentHandlers(false);
+        logger.addHandler(new Handler() {
+            @Override public void publish(LogRecord record) {
+                if (Level.INFO.equals(record.getLevel())) infoLogs.incrementAndGet();
+            }
+            @Override public void flush() { }
+            @Override public void close() { }
+        });
+
+        OfflineInventorySnapshotStore quiet = new OfflineInventorySnapshotStore(temp, logger);
+        quiet.saveAsync(snapshot).get();
+        assertTrue(quiet.load(snapshot.getPlayerUuid()).isPresent());
+        quiet.close();
+        assertEquals(0, infoLogs.get());
+
+        OfflineInventorySnapshotStore debug = new OfflineInventorySnapshotStore(temp, logger, true);
+        try {
+            assertTrue(debug.load(snapshot.getPlayerUuid()).isPresent());
+            assertEquals(1, infoLogs.get());
+        } finally {
+            debug.close();
+        }
+    }
+
     @Test
     void atomicallyRoundTripsEveryRenderedFieldAndCapturedAt(@TempDir Path temp) throws Exception {
         InventorySnapshot expected = new MockInventoryDataSource("paper-test").createSnapshot("Steve");

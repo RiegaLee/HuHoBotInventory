@@ -91,11 +91,34 @@ class InventoryAddonSessionTest {
         assertEquals("mock-inventory.png", service.context.gateway.lastFileName);
         assertEquals("Mock inventory: MockPlayer", service.context.gateway.lastCaption);
         assertEquals(0, service.context.gateway.textReplies.get());
+        assertEquals(0, service.context.logger.infos.get());
 
         session.close();
         session.close();
         assertEquals(2, service.context.closedRegistrations.get());
         assertEquals(1, service.context.closeCount.get());
+    }
+
+    @Test
+    void debugLoggingCanReportSuccessfulQueriesWhenExplicitlyEnabled() throws Exception {
+        FakeService service = new FakeService(ApiVersion.CURRENT, allCapabilities());
+        InventoryAddonSession session = InventoryAddonSession.start(
+            service,
+            descriptor(),
+            config(0, true, true),
+            new MockInventoryDataSource("test"),
+            new MockInventoryDataSource("online-test"),
+            fakeRenderer()
+        );
+        try {
+            CommandResult result = service.context.handler("inventorytest")
+                .handle(commandContext(service.context.gateway))
+                .toCompletableFuture().get();
+            assertEquals(CommandResult.Status.HANDLED, result.getStatus());
+            assertEquals(1, service.context.logger.infos.get());
+        } finally {
+            session.close();
+        }
     }
 
     @Test
@@ -736,8 +759,17 @@ class InventoryAddonSessionTest {
     }
 
     private static InventoryPluginConfig config(int cooldownSeconds, boolean allowLegacy) {
+        return config(cooldownSeconds, allowLegacy, false);
+    }
+
+    private static InventoryPluginConfig config(
+        int cooldownSeconds,
+        boolean allowLegacy,
+        boolean debugEnabled
+    ) {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("config-version", InventoryPluginConfig.CURRENT_VERSION);
+        yaml.set("debug", debugEnabled);
         yaml.set("command.name", "inventorytest");
         yaml.set("command.aliases", Collections.singletonList("invtest"));
         yaml.set("command.publish-to-menu", false);
@@ -1079,7 +1111,8 @@ class InventoryAddonSessionTest {
 
     private static final class CapturingLogger implements PluginLogger {
         private final AtomicInteger errors = new AtomicInteger();
-        @Override public void info(String message) { }
+        private final AtomicInteger infos = new AtomicInteger();
+        @Override public void info(String message) { infos.incrementAndGet(); }
         @Override public void warning(String message) { }
         @Override public void error(String message, Throwable error) { errors.incrementAndGet(); }
     }

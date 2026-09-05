@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.21.1"
+version = "1.21.2"
 
 val bundledAssetPackId = "inventory-assets-v11-mb7-pv8-glint-bed-shield-enderchest-hd64-pd1337875"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"

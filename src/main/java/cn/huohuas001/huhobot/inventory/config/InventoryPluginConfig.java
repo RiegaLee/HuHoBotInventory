@@ -12,8 +12,9 @@ import java.util.Set;
 
 /** Validated configuration owned exclusively by the Inventory addon. */
 public final class InventoryPluginConfig {
-    public static final int CURRENT_VERSION = 8;
+    public static final int CURRENT_VERSION = 9;
 
+    private final boolean debugEnabled;
     private final String commandName;
     private final List<String> commandAliases;
     private final boolean publishToMenu;
@@ -137,8 +138,10 @@ public final class InventoryPluginConfig {
         String enderChestPlayerStateChangedMessage,
         String enderChestNotAuthorizedMessage,
         String enderChestOfflineSnapshotMissingMessage,
-        String enderChestOfflineLegacyDeniedMessage
+        String enderChestOfflineLegacyDeniedMessage,
+        boolean debugEnabled
     ) {
+        this.debugEnabled = debugEnabled;
         this.commandName = normalizeCommand(commandName, "command.name");
         this.commandAliases = normalizedAliases(commandAliases, "command.aliases", this.commandName);
         this.publishToMenu = publishToMenu;
@@ -352,6 +355,7 @@ public final class InventoryPluginConfig {
             "messages.ender-chest-offline-legacy-denied",
             "当前旧版绑定未完成游戏内验证，不能读取持久化离线末影箱快照。"
         );
+        setIfMissing(config, "debug", false);
         config.set("config-version", CURRENT_VERSION);
         return true;
     }
@@ -450,7 +454,8 @@ public final class InventoryPluginConfig {
             config.getString(
                 "messages.ender-chest-offline-legacy-denied",
                 "当前旧版绑定未完成游戏内验证，不能读取持久化离线末影箱快照。"
-            )
+            ),
+            config.getBoolean("debug", false)
         );
     }
 
@@ -548,6 +553,7 @@ public final class InventoryPluginConfig {
     public String captionForOnline(String playerName) { return caption(onlineOptionalCaption, playerName); }
     public String captionForEnderChest(String playerName) { return caption(enderChestOptionalCaption, playerName); }
 
+    public boolean isDebugEnabled() { return debugEnabled; }
     public String getCommandName() { return commandName; }
     public List<String> getCommandAliases() { return commandAliases; }
     public boolean isPublishToMenu() { return publishToMenu; }
