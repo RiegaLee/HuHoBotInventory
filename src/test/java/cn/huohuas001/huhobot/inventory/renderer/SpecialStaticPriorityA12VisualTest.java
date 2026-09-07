@@ -87,8 +87,8 @@ class SpecialStaticPriorityA12VisualTest {
         RenderResult result = renderer.render(
             snapshot, new PlayerModelRenderer(previewArea.width, previewArea.height).render(skin)
         );
-        assertEquals(704, result.getWidth());
-        assertEquals(664, result.getHeight());
+        assertEquals(780, result.getWidth());
+        assertEquals(544, result.getHeight());
         assertTrue(result.getByteSize() > 30_000);
         Files.write(OUTPUT.resolve("special-priority-a1-a2-final-inventory.png"), result.getBytes());
     }

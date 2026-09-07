@@ -124,7 +124,25 @@ public final class ThemeLoader {
             textures,
             descriptor.getBoolean("render.draw-title", true),
             descriptor.getBoolean("render.draw-slot-backgrounds", true),
-            "nearest".equals(interpolation)
+            descriptor.getBoolean("render.draw-player-preview-matte", true),
+            "nearest".equals(interpolation),
+            loadEnderChestLayout(descriptor)
+        );
+    }
+
+    private static EnderChestLayout loadEnderChestLayout(YamlConfiguration yaml) {
+        if (!yaml.isConfigurationSection("ender-chest")) return EnderChestLayout.legacy();
+        return new EnderChestLayout(
+            positive(yaml, "ender-chest.canvas.width"),
+            positive(yaml, "ender-chest.canvas.height"),
+            nonNegative(yaml, "ender-chest.storage.start-x"),
+            nonNegative(yaml, "ender-chest.storage.start-y"),
+            positive(yaml, "ender-chest.storage.step-x"),
+            positive(yaml, "ender-chest.storage.step-y"),
+            positive(yaml, "ender-chest.slot.size"),
+            positive(yaml, "ender-chest.slot.item-size"),
+            nonNegative(yaml, "ender-chest.freshness.x"),
+            nonNegative(yaml, "ender-chest.freshness.y")
         );
     }
 
@@ -145,6 +163,9 @@ public final class ThemeLoader {
         Rectangle playerPreview = yaml.isConfigurationSection("player-preview")
             ? rectangle(yaml, "player-preview")
             : inferLegacyPlayerPreview(equipment, slotSize);
+        Rectangle freshness = yaml.isConfigurationSection("freshness")
+            ? rectangle(yaml, "freshness")
+            : playerPreview;
 
         return new Layout(
             positive(yaml, "canvas.width"),
@@ -156,6 +177,7 @@ public final class ThemeLoader {
             hotbar,
             equipment,
             playerPreview,
+            freshness,
             new Point(nonNegative(yaml, "quantity.offset-x"), nonNegative(yaml, "quantity.offset-y")),
             new Rectangle(
                 nonNegative(yaml, "durability.offset-x"),

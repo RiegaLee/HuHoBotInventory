@@ -1,4 +1,4 @@
-config-version: 9
+config-version: 10
 
 # 仅排查问题时开启；关闭时普通查询不输出调试日志。
 debug: false
@@ -77,6 +77,7 @@ player-preview:
   connect-timeout-ms: 4000
   read-timeout-ms: 8000
 
+# 主题：faithful32x 或 cozyui-plus
 render:
   theme: faithful32x
   max-output-bytes: 4194304

@@ -10,9 +10,9 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.21.2"
+version = "1.21.3"
 
-val bundledAssetPackId = "inventory-assets-v11-mb7-pv8-glint-bed-shield-enderchest-hd64-pd1337875"
+val bundledAssetPackId = "inventory-assets-v13-mb7-pv9-glint-bed-shield-enderchest-hd64-pd1337875-cozyui-creative"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"
 val bundledVanillaSource = file("data/imported-assets/vanilla/$bundledVanillaCacheKey")
 val generatedBundledResources = layout.buildDirectory.dir("generated/bundled-assets/resources")
@@ -193,7 +193,7 @@ val generateBundledAssets by tasks.registering {
         val manifest = buildString {
             append("{\n")
             append("  \"schemaVersion\": 1,\n")
-            append("  \"assetPackVersion\": 11,\n")
+            append("  \"assetPackVersion\": 13,\n")
             append("  \"packId\": ").append(json(bundledAssetPackId)).append(",\n")
             append("  \"compatibleInventoryVersion\": ").append(json(project.version.toString())).append(",\n")
             append("  \"minecraftVersion\": \"26.1.2\",\n")
@@ -233,7 +233,7 @@ tasks.test {
 }
 
 tasks.jar {
-    archiveFileName.set("HuHoBot-MinecraftInventory-${project.version}.jar")
+    archiveFileName.set("HuHoBot-Inventory-${project.version}.jar")
     from(zipTree(huhobotApiJar)) {
         include("cn/huohuas001/huhobot/api/**")
     }

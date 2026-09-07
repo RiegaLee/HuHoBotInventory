@@ -12,7 +12,7 @@ import java.util.Set;
 
 /** Validated configuration owned exclusively by the Inventory addon. */
 public final class InventoryPluginConfig {
-    public static final int CURRENT_VERSION = 9;
+    public static final int CURRENT_VERSION = 10;
 
     private final boolean debugEnabled;
     private final String commandName;
@@ -356,6 +356,7 @@ public final class InventoryPluginConfig {
             "当前旧版绑定未完成游戏内验证，不能读取持久化离线末影箱快照。"
         );
         setIfMissing(config, "debug", false);
+        setIfMissing(config, "render.theme", "faithful32x");
         config.set("config-version", CURRENT_VERSION);
         return true;
     }

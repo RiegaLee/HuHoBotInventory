@@ -1,0 +1,38 @@
+format-version: 1
+id: cozyui-plus
+name: CozyUI+ Compatibility Theme (Unofficial)
+version: 1.2.0
+minecraft-version: "CozyUI+ 1.10 supports 1.20-1.21.11; tested with Paper 1.21.11"
+asset-pack-version: "CozyUI+ 1.10 no-fonts GUI; Faithful 32x 26.2 item icons; PV9 supersampled player; mirrored three-row Ender Chest panel"
+background: background.png
+layout: layout.yml
+textures-directory: assets
+overrides-directory: overrides/items
+special-variants-directory: special-variants
+runtime-composites-directory: runtime-composites/items/minecraft
+fallback-texture: fallback/unknown.png
+license: LICENSE-CozyUI-Plus.txt
+source: SOURCES.md
+manifest: ASSET_MANIFEST.tsv
+
+render:
+  draw-title: false
+  draw-slot-backgrounds: false
+  draw-player-preview-matte: false
+  texture-interpolation: nearest
+
+ender-chest:
+  canvas:
+    width: 712
+    height: 276
+  storage:
+    start-x: 32
+    start-y: 32
+    step-x: 72
+    step-y: 72
+  slot:
+    size: 72
+    item-size: 64
+  freshness:
+    x: 14
+    y: 10

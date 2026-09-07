@@ -72,7 +72,7 @@ class PlayerSkinRendererTest {
     }
 
     @Test
-    void pv8SizedCacheInvalidatesImmediatelyWhenEquipmentTrimOrGlintChanges(@TempDir Path temp) throws Exception {
+    void pv9SizedCacheInvalidatesImmediatelyWhenEquipmentTrimOrGlintChanges(@TempDir Path temp) throws Exception {
         PlayerSkin fixedSkin = new PlayerSkin(testSkin(true), "fixed-skin", "TEST", false);
         PlayerSkinProvider provider = player -> Optional.of(fixedSkin);
         EquipmentAssetResolver assets = new EquipmentAssetResolver(
@@ -109,7 +109,7 @@ class PlayerSkinRendererTest {
             assertEquals(4L, files.filter(Files::isRegularFile).count());
         }
         try (java.util.stream.Stream<Path> files = Files.list(temp.resolve("previews"))) {
-            assertTrue(files.allMatch(path -> path.getFileName().toString().startsWith("pv8-198x283-")));
+            assertTrue(files.allMatch(path -> path.getFileName().toString().startsWith("pv9-198x283-")));
         }
     }
 

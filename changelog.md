@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.21.3 — 2026-09-07
+
+- 新增可选的非官方 `cozyui-plus` 兼容主题，并保留 CozyUI+ 原作者、来源与 GPL-3.0 许可信息。
+- CozyUI+ 背包移除无用的合成区域，直接使用主题自带人物框，不再叠加 Faithful 人物衬底。
+- Faithful 与 CozyUI+ 背包改用原生创造模式布局：盔甲分列人物两侧，保留完整 780×544 圆角边框，并以相邻底色抹除无实际作用的右下角垃圾桶按钮。
+- CozyUI+ 末影箱使用首行整体镜像构造第三行与底边，移除重复的四像素分割线并保留透明圆角空间。
+- 人物模型升级为 PV9：先以最高 4 倍精度渲染，再以高质量缩放至主题人物框，改善斜边、第二层和四肢轮廓。
+- 人物预览缓存键升级为 `pv9-<width>x<height>`，升级后会自动生成新预览，不复用 PV8 缓存。
+- 末影箱画布、槽位起点及离线标签位置改为主题配置；Faithful 主题保持原有 704×308 布局。
+- 插件发布文件名缩短为 `HuHoBot-Inventory-1.21.3.jar`；内部插件标识仍为 `HuHoBotInventory`，保持数据目录与宿主兼容。
+- 配置版本升级到 10；升级旧配置时会补回缺失的 `render.theme: faithful32x` 主题选择项，不覆盖已有选择。
+- Bundled Asset Pack 升级为 `inventory-assets-v13-mb7-pv9-glint-bed-shield-enderchest-hd64-pd1337875-cozyui-creative`。
+
 ## 1.21.2 — 2026-09-05
 
 ### Quiet Logging by Default

@@ -22,6 +22,7 @@ public final class Layout {
     private final Grid hotbar;
     private final Map<SlotType, Point> equipment;
     private final Rectangle playerPreview;
+    private final Rectangle freshness;
     private final Point quantityOffset;
     private final Rectangle durability;
 
@@ -35,6 +36,7 @@ public final class Layout {
         Grid hotbar,
         Map<SlotType, Point> equipment,
         Rectangle playerPreview,
+        Rectangle freshness,
         Point quantityOffset,
         Rectangle durability
     ) {
@@ -71,6 +73,7 @@ public final class Layout {
         }
         this.equipment = points;
         this.playerPreview = playerPreview == null ? null : new Rectangle(playerPreview);
+        this.freshness = freshness == null ? null : new Rectangle(freshness);
         this.quantityOffset = copy(Objects.requireNonNull(quantityOffset, "quantityOffset"));
         this.durability = new Rectangle(Objects.requireNonNull(durability, "durability"));
         validateAllSlots();
@@ -100,6 +103,10 @@ public final class Layout {
             validateBounds(new Rectangle(point.x, point.y, slotSize, slotSize), occupied);
         }
         if (playerPreview != null) validateBounds(playerPreview, occupied);
+        if (freshness != null && (freshness.x < 0 || freshness.y < 0 ||
+            freshness.x + freshness.width > width || freshness.y + freshness.height > height)) {
+            throw new IllegalArgumentException("freshness area lies outside the canvas: " + freshness);
+        }
         if (title.x < 0 || title.x >= width || title.y < 0 || title.y >= height) {
             throw new IllegalArgumentException("title anchor lies outside the canvas");
         }
@@ -136,6 +143,7 @@ public final class Layout {
     public int getItemSize() { return itemSize; }
     public Point getTitle() { return copy(title); }
     public Rectangle getPlayerPreview() { return playerPreview == null ? null : new Rectangle(playerPreview); }
+    public Rectangle getFreshness() { return freshness == null ? null : new Rectangle(freshness); }
     public Point getQuantityOffset() { return copy(quantityOffset); }
     public Rectangle getDurability() { return new Rectangle(durability); }
 

@@ -17,9 +17,11 @@ import java.util.List;
 
 /** Fixed-pose, headless Java2D software renderer for a textured Minecraft player model. */
 public final class PlayerModelRenderer {
-    public static final String CACHE_VERSION = "pv8";
+    public static final String CACHE_VERSION = "pv9";
     public static final int WIDTH = 128;
     public static final int HEIGHT = 256;
+    static final int SUPERSAMPLE_SCALE = 4;
+    private static final long MAX_RASTER_PIXELS = 4_000_000L;
 
     static final int HEAD_SIZE = 8;
     static final int BODY_WIDTH = 8;
@@ -132,29 +134,76 @@ public final class PlayerModelRenderer {
                 return 0;
             }
         });
-        FitResult fit = fit(visible);
-        visible = fit.faces;
+        int supersample = supersampleScale(outputWidth, outputHeight);
+        BufferedImage rasterized = rasterize(
+            visible,
+            outputWidth * supersample,
+            outputHeight * supersample,
+            supersample
+        );
+        return supersample == 1
+            ? rasterized
+            : downsample(rasterized, outputWidth, outputHeight);
+    }
 
-        BufferedImage output = new BufferedImage(outputWidth, outputHeight, BufferedImage.TYPE_INT_ARGB);
+    private static BufferedImage rasterize(
+        List<ProjectedFace> source,
+        int width,
+        int height,
+        int pixelScale
+    ) {
+        FitResult fit = fit(source, width, height);
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
         Graphics2D graphics = output.createGraphics();
         try {
             graphics.setComposite(AlphaComposite.SrcOver);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             graphics.setColor(new Color(0, 0, 0, 82));
-            double outputScale = (double) outputHeight / HEIGHT;
+            double outputScale = (double) height / HEIGHT;
             int shadowWidth = Math.max(1, (int) Math.round(84 * outputScale));
             int shadowHeight = Math.max(1, (int) Math.round(11 * outputScale));
-            int shadowX = (outputWidth - shadowWidth) / 2;
+            int shadowX = (width - shadowWidth) / 2;
             int shadowY = Math.min(
-                outputHeight - Math.max(1, (int) Math.round(12 * outputScale)),
+                height - Math.max(1, (int) Math.round(12 * outputScale)),
                 (int) Math.round(fit.bottom + 2 * outputScale)
             );
             graphics.fillOval(shadowX, shadowY, shadowWidth, shadowHeight);
-            for (ProjectedFace face : visible) drawFace(graphics, face);
+            for (ProjectedFace face : fit.faces) {
+                drawFace(graphics, face, FACE_EDGE_BLEED * pixelScale);
+            }
         } finally {
             graphics.dispose();
         }
         return output;
+    }
+
+    private static BufferedImage downsample(BufferedImage source, int width, int height) {
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = output.createGraphics();
+        try {
+            graphics.setComposite(AlphaComposite.Src);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.setRenderingHint(
+                RenderingHints.KEY_ALPHA_INTERPOLATION,
+                RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY
+            );
+            graphics.setRenderingHint(
+                RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC
+            );
+            graphics.drawImage(source, 0, 0, width, height, null);
+        } finally {
+            graphics.dispose();
+        }
+        return output;
+    }
+
+    static int supersampleScale(int width, int height) {
+        long pixels = (long) width * height;
+        for (int scale = SUPERSAMPLE_SCALE; scale >= 2; scale--) {
+            if (pixels * scale * scale <= MAX_RASTER_PIXELS) return scale;
+        }
+        return 1;
     }
 
     private static void addArmor(
@@ -418,7 +467,7 @@ public final class PlayerModelRenderer {
         return new ProjectedFace(face, points, depth / 4.0);
     }
 
-    private FitResult fit(List<ProjectedFace> faces) {
+    private static FitResult fit(List<ProjectedFace> faces, int width, int height) {
         double minX = Double.POSITIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
@@ -427,18 +476,18 @@ public final class PlayerModelRenderer {
             minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x);
             minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y);
         }
-        double outputScale = (double) outputHeight / HEIGHT;
+        double outputScale = (double) height / HEIGHT;
         double horizontalPadding = HORIZONTAL_PADDING * outputScale;
         double topPadding = TOP_PADDING * outputScale;
         double bottomPadding = BOTTOM_PADDING * outputScale;
         if (faces.isEmpty() || maxX <= minX || maxY <= minY) {
-            return new FitResult(faces, outputHeight - bottomPadding);
+            return new FitResult(faces, height - bottomPadding);
         }
         double scale = Math.min(
-            (outputWidth - horizontalPadding * 2.0) / (maxX - minX),
-            (outputHeight - topPadding - bottomPadding) / (maxY - minY)
+            (width - horizontalPadding * 2.0) / (maxX - minX),
+            (height - topPadding - bottomPadding) / (maxY - minY)
         );
-        double offsetX = (outputWidth - (maxX - minX) * scale) / 2.0 - minX * scale;
+        double offsetX = (width - (maxX - minX) * scale) / 2.0 - minX * scale;
         double offsetY = topPadding - minY * scale;
         List<ProjectedFace> fitted = new ArrayList<ProjectedFace>();
         for (ProjectedFace face : faces) {
@@ -462,11 +511,15 @@ public final class PlayerModelRenderer {
         return new Vec3(yawX, pitchY, pitchZ);
     }
 
-    private static void drawFace(Graphics2D destination, ProjectedFace projected) {
+    private static void drawFace(
+        Graphics2D destination,
+        ProjectedFace projected,
+        double edgeBleed
+    ) {
         Face face = projected.face;
         BufferedImage pixels = shadedRegion(face.texture, face.uv, face.shade, face.mirror, face.glint);
         if (!hasVisiblePixel(pixels)) return;
-        Point2[] points = bleed(projected.points, FACE_EDGE_BLEED);
+        Point2[] points = bleed(projected.points, edgeBleed);
         Graphics2D graphics = (Graphics2D) destination.create();
         try {
             int[] xs = new int[4];

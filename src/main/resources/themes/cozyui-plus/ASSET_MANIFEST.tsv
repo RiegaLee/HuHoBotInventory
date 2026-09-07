@@ -1,0 +1,4 @@
+# output	source path	source sha256	output sha256	adaptation
+background.png	assets/minecraft/textures/gui/container/creative_inventory/tab_inventory.png	9FD3A0D8A37E265E13742A3DF1FDA7BB582FFE0D07DCD16451F837020DE8A222	71752D62E53AC4B160E98E706A958E39EAE19A60A559965D9701E7A841C2B97A	complete 780x544 native panel; trash button x=688..759,y=436..519 filled row-by-row from adjacent x=764 panel color; no crop or rescale
+ender-chest-background.png	assets/minecraft/optifine/gui/container/chest_ender.png	EE924367F8AA44CB8B781F526423C6A721C9D924066973EA87DA0733EA95CE7D	45293C964D2A4B5B35E0C2C8CA2C817D76F3E4D74F8A6FCDAE2695626A6FD54A	first row mirrored below row two; duplicate 4px divider removed; 8px transparent padding
+# All remaining binary assets are byte-identical to themes/faithful32x; see that theme's ASSET_MANIFEST.tsv.

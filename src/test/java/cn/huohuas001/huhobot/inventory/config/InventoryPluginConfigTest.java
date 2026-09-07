@@ -163,6 +163,19 @@ class InventoryPluginConfigTest {
         assertTrue(InventoryPluginConfig.load(yaml).isDebugEnabled());
     }
 
+    @Test
+    void migratesVersionNineConfigMissingThemeSelector() {
+        YamlConfiguration yaml = phaseOneConfig();
+        InventoryPluginConfig.migrateToCurrent(yaml);
+        yaml.set("config-version", 9);
+        yaml.set("render.theme", null);
+
+        assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
+        assertEquals(10, yaml.getInt("config-version"));
+        assertEquals("faithful32x", yaml.getString("render.theme"));
+        assertEquals("faithful32x", InventoryPluginConfig.load(yaml).getThemeId());
+    }
+
     private static YamlConfiguration phaseOneConfig() {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("config-version", 1);

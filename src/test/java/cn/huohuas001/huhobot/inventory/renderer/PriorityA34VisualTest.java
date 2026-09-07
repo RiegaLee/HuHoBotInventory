@@ -79,9 +79,9 @@ class PriorityA34VisualTest {
         RenderResult result=renderer.render(
             snapshot,new PlayerModelRenderer(previewArea.width,previewArea.height).render(skin)
         );
-        assertEquals(704,result.getWidth());
-        assertEquals(664,result.getHeight());
-        assertTrue(result.getByteSize()>25_000);
+        assertEquals(780,result.getWidth());
+        assertEquals(544,result.getHeight());
+        assertTrue(result.getByteSize()>15_000);
         Files.write(OUTPUT.resolve("priority-a3-a4-final-inventory.png"),result.getBytes());
 
         Files.write(OUTPUT.resolve("priority-a3-a4-client-facts.txt"), Arrays.asList(

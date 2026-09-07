@@ -1,24 +1,25 @@
-# HuHoBot Inventory
+# HuHoBot-Inventory
 
-HuHoBot Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影箱图片查询 Addon。玩家可以在 QQ 群中查看已绑定游戏账号的在线实时数据或最近一次可信离线快照，并通过按钮选择多个已绑定账号。
+HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影箱图片查询 Addon。玩家可以在 QQ 群中查看已绑定游戏账号的在线实时数据或最近一次可信离线快照，并通过按钮选择多个已绑定账号。
 
 - 作者：`RiegaLee`
 - 插件标识：`HuHoBotInventory`
-- 当前版本：`1.21.2`
+- 当前版本：`1.21.3`
 - 状态：`FULL PASS`
 
 正式构建请从仓库的 [Releases](../../releases) 页面下载，不要从第三方来源下载来历不明的 JAR。
 
 ## 功能
 
-- 生成 704×664 的 Minecraft 背包图片。
-- 生成独立的 704×308 末影箱图片。
+- 生成 780×544 的 Minecraft 创造模式布局背包图片。
+- 生成独立的末影箱图片，尺寸由所选主题决定。
 - 在线玩家读取实时背包/末影箱；离线玩家读取持久化快照。
 - 服务器完整重启且玩家保持离线后，仍可读取此前保存的快照。
 - 与 GameAuthCode 双账号绑定兼容，使用上下排列的 QQ 按钮选择查询账号。
 - 按钮限制发起用户、60 秒有效且只能消费一次，并提供准确的过期反馈。
 - HuHoBot-Penguin AGENT 分支未安装外部绑定权威时，可读取其内置单账号绑定；旧绑定只允许在线本人查询，不冒充已验证离线身份。
-- Faithful 32x 背包主题、混合分辨率物品图标、3D 人物皮肤第二层、盔甲/纹饰/附魔炫光及常见特殊物品渲染。
+- 内置 Faithful 32x 默认主题与非官方 CozyUI+ 兼容主题。
+- 混合分辨率物品图标、PV9 高精度 3D 人物皮肤第二层、盔甲/纹饰/附魔炫光及常见特殊物品渲染。
 - 可选使用 SkinsRestorer 获取玩家当前皮肤。
 - 内置兼容宿主与 HuHoBot API，不需要修改 HuHoBot-Penguin 主分支或 HuHoBot-Penguin AGENT 分支主体。
 
@@ -39,10 +40,10 @@ HuHoBot Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 主分支或 AGENT 分支。
 
-1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-MinecraftInventory-1.21.2.jar`。
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.21.3.jar`。
 2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
 3. 重启服务器。
-4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.21.2`，就表示安装成功。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.21.3`，就表示安装成功。
 
 首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 
@@ -125,11 +126,22 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 | `render.theme` | `faithful32x` | 默认渲染主题 |
 | `render.max-output-bytes` | `4194304` | 单张输出图片大小上限 |
 
+### 切换界面主题
+
+默认使用 `faithful32x`。如需启用非官方 CozyUI+ 兼容主题，将配置改为：
+
+```yaml
+render:
+  theme: cozyui-plus
+```
+
+保存后完整重启服务器即可。该设置会同时切换背包与末影箱底图，不影响物品、皮肤和离线快照数据。
+
 ## 开发者构建
 
 普通服主不需要执行素材导入或编译命令，直接下载 Release 中的插件 JAR 即可。需要修改、移植或从源码构建时，请阅读 [BUILDING.md](BUILDING.md)。
 
-## 第三方资源与非商业限制
+## 第三方资源与许可证
 
 仓库代码采用 MIT License，但内置 `faithful32x` 主题仍受 Faithful License 约束，不能被 MIT 重新许可。使用或分发含 Faithful 资源的版本时必须：
 
@@ -139,6 +151,8 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 - 不得商业化含有其资源的内容。
 
 完整信息见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)、[Faithful License](THIRD_PARTY_LICENSES/Faithful-LICENSE.txt) 与[精确资源来源记录](src/main/resources/themes/faithful32x/SOURCES.md)。
+
+可选的 `cozyui-plus` 是基于 [CozyUI+](https://github.com/Fogg05/CozyUI-Plus) 制作的非官方兼容主题。界面原作者为零雾〇五 Fogg05，相关 GUI 修改资源继续适用 [GNU GPL v3.0](THIRD_PARTY_LICENSES/CozyUI-Plus-GPL-3.0.txt)。本项目不宣称该界面设计为原创作品，也不是 CozyUI+ 官方续作。精确修改记录见 [CozyUI+ 主题来源说明](src/main/resources/themes/cozyui-plus/SOURCES.md)。
 
 Minecraft、HuHoBot、Paper/Spigot、SkinsRestorer 等名称及资源属于各自权利人。本插件不是其官方产品。
 

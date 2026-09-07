@@ -15,7 +15,9 @@ public final class Theme {
     private final TextureResolver textures;
     private final boolean drawTitle;
     private final boolean drawSlotBackgrounds;
+    private final boolean drawPlayerPreviewMatte;
     private final boolean nearestNeighborTextures;
+    private final EnderChestLayout enderChestLayout;
 
     Theme(
         String id,
@@ -28,7 +30,9 @@ public final class Theme {
         TextureResolver textures,
         boolean drawTitle,
         boolean drawSlotBackgrounds,
-        boolean nearestNeighborTextures
+        boolean drawPlayerPreviewMatte,
+        boolean nearestNeighborTextures,
+        EnderChestLayout enderChestLayout
     ) {
         this.id = Objects.requireNonNull(id, "id");
         this.name = Objects.requireNonNull(name, "name");
@@ -40,7 +44,9 @@ public final class Theme {
         this.textures = Objects.requireNonNull(textures, "textures");
         this.drawTitle = drawTitle;
         this.drawSlotBackgrounds = drawSlotBackgrounds;
+        this.drawPlayerPreviewMatte = drawPlayerPreviewMatte;
         this.nearestNeighborTextures = nearestNeighborTextures;
+        this.enderChestLayout = Objects.requireNonNull(enderChestLayout, "enderChestLayout");
     }
 
     public String getId() { return id; }
@@ -53,5 +59,7 @@ public final class Theme {
     public TextureResolver getTextures() { return textures; }
     public boolean isDrawTitle() { return drawTitle; }
     public boolean isDrawSlotBackgrounds() { return drawSlotBackgrounds; }
+    public boolean isDrawPlayerPreviewMatte() { return drawPlayerPreviewMatte; }
     public boolean isNearestNeighborTextures() { return nearestNeighborTextures; }
+    public EnderChestLayout getEnderChestLayout() { return enderChestLayout; }
 }

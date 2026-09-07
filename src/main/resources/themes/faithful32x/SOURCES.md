@@ -89,11 +89,14 @@ site, use only needed assets, and avoid misleading claims of official endorsemen
   an exact 2x nearest-neighbor enlargement. Item textures are still resolved by the same 64x64
   Inventory pipeline; the normal player inventory and player preview are intentionally omitted.
 
-The GUI's visible 352×332 alpha bounds are cropped and enlarged 2× with nearest-neighbor
-sampling to 704×664. The survival-only 2×2 crafting controls at output pixels
-`x=390..681, y=70..209` are then replaced with the adjacent Faithful panel color, producing the
-blank creative-style query panel without moving armor, offhand, player, storage, or hotbar
-coordinates. Native Faithful 32x 2D item textures remain 32×32 and are enlarged by an
+The Inventory background comes from Faithful 26.2
+`assets/minecraft/textures/gui/container/creative_inventory/tab_inventory.png`. Its complete
+visible 390×272 panel is enlarged exactly 2× with nearest-neighbor sampling to 780×544, retaining
+both rounded side edges. The native creative layout places armor slots on both sides of the
+player, the offhand on the left, and the storage/hotbar grids below. The unused trash button at
+output pixels `x=688..759, y=436..519` is filled row by row with the adjacent native panel color
+sampled at `x=764`; the surrounding border is not cropped or stretched. Native Faithful 32x 2D
+item textures remain 32×32 and are enlarged by an
 exact nearest-neighbor factor of two at final composition. Block models and the generated
 chest/shulker/bed special icons are instead rasterized directly at the final 64×64 slot size,
 so they never take the former lossy 64→32→64 path. Twenty-six selected Faithful files are copied
@@ -103,18 +106,19 @@ the runtime NamespacedKey layout `assets/minecraft/<path>.png` and are not expli
 Exact source paths, SHA-256 hashes, target paths, and processing are recorded in
 `ASSET_MANIFEST.tsv`.
 
-Player Preview PV8 is rasterized directly at the active theme's final preview rectangle
-(`198x283` for Faithful) instead of first producing `128x256` and applying a second non-integer
-nearest-neighbor scale. Player skins retain their native Minecraft pixels; Faithful armor, trim,
+Player Preview PV9 fits the model to the active theme's final preview aspect ratio
+(`128x172` for Faithful), rasterizes the fitted projection at up to four times the final width and
+height, and then performs one quality downsample. This retains native Minecraft texture pixels
+while improving projected diagonals, outer-layer contours and limb edges. Faithful armor, trim,
 overlay, and glint layers retain their existing source resolution and projection order. Modern
 64x64 skin second layers are rendered for the hat, jacket, both sleeves and both trouser legs at
 the client dimensions: `0.5` model-pixel expansion for the head and `0.25` for the other parts.
-PV8 adds visible side walls around non-transparent outer-layer pixel boundaries and a 0.6 output
+PV9 retains PV8's visible side walls around non-transparent outer-layer pixel boundaries and a 0.6 output
 pixel bleed across shared projected faces, preserving sparse one-pixel details without black
 raster cracks. Transparent UV pixels remain transparent and equipped armor renders in the later
 material pass.
 
-The independent PV8 behavior review used tr7zw's
+The independent voxel-layer behavior review used tr7zw's
 [`3d-Skin-Layers`](https://github.com/tr7zw/3d-Skin-Layers) commit
 `64326789a5caf31b6651f2edc8dd23b59f88f6f6` as a public visual/geometry reference: its head mesh
 uses the standard `8x8x8`, `(32,0)` hat UV and converts present outer pixels into modeled depth.

@@ -21,8 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerModelRendererTest {
     @Test
-    void usesCanonicalMinecraftGeometryAndPv8GlintConstants() {
-        assertEquals("pv8", PlayerModelRenderer.CACHE_VERSION);
+    void usesCanonicalMinecraftGeometryAndPv9QualityConstants() {
+        assertEquals("pv9", PlayerModelRenderer.CACHE_VERSION);
+        assertEquals(4, PlayerModelRenderer.SUPERSAMPLE_SCALE);
+        assertEquals(4, PlayerModelRenderer.supersampleScale(198, 283));
+        assertEquals(1, PlayerModelRenderer.supersampleScale(2000, 2000));
         assertEquals(8, PlayerModelRenderer.HEAD_SIZE);
         assertEquals(8, PlayerModelRenderer.BODY_WIDTH);
         assertEquals(12, PlayerModelRenderer.BODY_HEIGHT);
@@ -49,10 +52,10 @@ class PlayerModelRendererTest {
     }
 
     @Test
-    void rendersDirectlyAtFaithfulFinalPreviewSizeWithoutIntermediateResample() throws Exception {
+    void fitsFaithfulFinalPreviewAtSupersampledResolution() throws Exception {
         int targetWidth = 198;
         int targetHeight = 283;
-        PlayerSkin skin = skin("pv8-direct", false, false, true, new Color(42, 58, 72));
+        PlayerSkin skin = skin("pv9-supersampled", false, false, true, new Color(42, 58, 72));
         EquipmentAssetResolver assets = new EquipmentAssetResolver(Paths.get("src", "armor-assets"));
         ArmorEquipmentSet equipment = fullSet("netherite", "coast", "gold", null, true);
 
@@ -66,7 +69,7 @@ class PlayerModelRendererTest {
         assertEquals(targetWidth, direct.getWidth());
         assertEquals(targetHeight, direct.getHeight());
         assertNotEquals(hash(resampled), hash(direct),
-            "PV8 must rasterize at the final theme size instead of scaling the old 128x256 preview");
+            "PV9 must rasterize its geometry for the final theme aspect ratio");
         Bounds directBounds = bounds(direct);
         assertTrue(directBounds.top >= 9, "direct head must not be clipped");
         assertTrue(directBounds.bottom < targetHeight - 5, "direct feet and shadow must not be clipped");
@@ -83,16 +86,35 @@ class PlayerModelRendererTest {
             graphics.setColor(Color.WHITE);
             graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
             graphics.drawString("Before: 128x256 -> 198x283", 6, 19);
-            graphics.drawString("After: direct 198x283", targetWidth + 6, 19);
+            graphics.drawString("After: PV9 4x supersampled", targetWidth + 6, 19);
         } finally {
             graphics.dispose();
         }
         Path output = Paths.get(
             "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875",
-            "player-preview-hd", "player-preview-pv6-resampled-vs-pv8-direct.png"
+            "player-preview-hd", "player-preview-pv6-resampled-vs-pv9-supersampled.png"
         );
         Files.createDirectories(output.getParent());
         ImageIO.write(comparison, "png", output.toFile());
+    }
+
+    @Test
+    void supersamplingAddsSmoothModelEdgesWithoutChangingOutputDimensions() {
+        int width = 198;
+        int height = 283;
+        BufferedImage rendered = new PlayerModelRenderer(width, height).render(
+            skin("pv9-edge-quality", false, false, false, new Color(42, 136, 150))
+        );
+
+        assertEquals(width, rendered.getWidth());
+        assertEquals(height, rendered.getHeight());
+        int partiallyCoveredModelPixels = 0;
+        for (int y = 0; y < 235; y++) for (int x = 0; x < width; x++) {
+            int alpha = rendered.getRGB(x, y) >>> 24;
+            if (alpha > 0 && alpha < 255 && alpha != 82) partiallyCoveredModelPixels++;
+        }
+        assertTrue(partiallyCoveredModelPixels > 100,
+            "PV9 must retain supersampled coverage along projected model edges");
     }
 
     @Test
@@ -157,7 +179,7 @@ class PlayerModelRendererTest {
 
         Path output = Paths.get(
             "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875",
-            "player-head-shell", "blue-enderman-skin-pv8.png"
+            "player-head-shell", "blue-enderman-skin-pv9.png"
         );
         Files.createDirectories(output.getParent());
         ImageIO.write(rendered, "png", output.toFile());

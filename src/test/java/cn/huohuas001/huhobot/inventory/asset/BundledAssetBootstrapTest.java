@@ -28,7 +28,10 @@ class BundledAssetBootstrapTest {
             BundledAssetBootstrapTest.class.getClassLoader().getResourceAsStream(path);
         BundledAssetBootstrap.Installation first = BundledAssetBootstrap.install(dataRoot, classpath);
 
-        assertEquals("inventory-assets-v11-mb7-pv8-glint-bed-shield-enderchest-hd64-pd1337875", first.getPackId());
+        assertEquals(
+            "inventory-assets-v13-mb7-pv9-glint-bed-shield-enderchest-hd64-pd1337875-cozyui-creative",
+            first.getPackId()
+        );
         assertEquals(1413, first.getGeneratedIcons());
         assertEquals(1506, first.getTotalDefinitions());
         assertTrue(first.getInstalledFiles() > 1413);
@@ -39,6 +42,14 @@ class BundledAssetBootstrapTest {
         ));
         assertTrue(Files.isRegularFile(
             first.getThemesRoot().resolve("faithful32x/overrides/items/minecraft/red_bed.png")
+        ));
+        assertTrue(Files.isRegularFile(first.getThemesRoot().resolve("cozyui-plus/theme.yml")));
+        assertTrue(Files.isRegularFile(first.getThemesRoot().resolve("cozyui-plus/background.png")));
+        assertTrue(Files.isRegularFile(
+            first.getThemesRoot().resolve("cozyui-plus/ender-chest-background.png")
+        ));
+        assertTrue(Files.isRegularFile(
+            first.getThemesRoot().resolve("cozyui-plus/LICENSE-CozyUI-Plus.txt")
         ));
 
         VanillaImportedAssetProvider provider = VanillaImportedAssetProvider.open(first.getVanillaRoot());

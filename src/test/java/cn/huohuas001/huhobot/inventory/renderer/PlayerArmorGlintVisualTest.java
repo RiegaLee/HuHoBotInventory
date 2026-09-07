@@ -26,7 +26,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Final 704x664 composition gate for the PV8 direct-size deterministic armor glint layer. */
+/** Final 780x544 composition gate for the PV9 supersampled deterministic armor glint layer. */
 class PlayerArmorGlintVisualTest {
     private static final Path OUTPUT = Paths.get(
         "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875", "player-armor-glint"
@@ -51,9 +51,9 @@ class PlayerArmorGlintVisualTest {
             skin, ArmorEquipmentSet.from(snapshot), equipmentAssets
         );
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot, preview);
-        assertEquals(704, result.getWidth());
-        assertEquals(664, result.getHeight());
-        assertTrue(result.getByteSize() > 30_000);
+        assertEquals(780, result.getWidth());
+        assertEquals(544, result.getHeight());
+        assertTrue(result.getByteSize() > 15_000);
 
         Files.createDirectories(OUTPUT);
         Files.write(OUTPUT.resolve("armor-glint-final-inventory.png"), result.getBytes());
@@ -70,8 +70,8 @@ class PlayerArmorGlintVisualTest {
             "StaticPhase=client-equivalent t=242s (110s/30s cycles)",
             "Output=deterministic static PNG",
             "GlintVertexColor=white (independent from leather dye)",
-            "PreviewCache=PV8-198x283",
-            "PreviewRasterization=direct final theme rectangle; no 128x256 intermediate resample",
+            "PreviewCache=PV9-128x172",
+            "PreviewRasterization=up to 4x supersampled; one high-quality final downsample",
             "MB7=mixed-resolution"
         ), StandardCharsets.UTF_8);
     }

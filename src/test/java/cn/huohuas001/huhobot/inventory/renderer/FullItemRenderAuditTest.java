@@ -339,8 +339,8 @@ class FullItemRenderAuditTest {
         Java2DInventoryRenderer renderer, InventorySnapshot snapshot, BufferedImage preview, Path file
     ) throws Exception {
         RenderResult result = renderer.render(snapshot, preview);
-        assertEquals(704, result.getWidth());
-        assertEquals(664, result.getHeight());
+        assertEquals(780, result.getWidth());
+        assertEquals(544, result.getHeight());
         assertTrue(result.getByteSize() > 10_000);
         Files.createDirectories(file.getParent());
         Files.write(file, result.getBytes());

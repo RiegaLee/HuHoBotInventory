@@ -61,7 +61,7 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
         try {
             configure(graphics, theme);
             graphics.drawImage(theme.getBackground(), 0, 0, null);
-            drawPlayerPreview(graphics, layout, playerPreview);
+            drawPlayerPreview(graphics, layout, playerPreview, theme.isDrawPlayerPreviewMatte());
             drawFreshness(graphics, layout, metadata);
             if (theme.isDrawTitle()) drawTitle(graphics, layout, snapshot);
             for (InventorySlot slot : snapshot.getAllSlots()) drawSlot(graphics, layout, slot);
@@ -73,7 +73,7 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
 
     private static void drawFreshness(Graphics2D graphics, Layout layout, InventoryRenderMetadata metadata) {
         if (metadata == null || metadata.getFreshness() != InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT) return;
-        Rectangle area = layout.getPlayerPreview();
+        Rectangle area = layout.getFreshness();
         if (area == null) return;
         String label = offlineSnapshotLabel(metadata);
         Graphics2D layer = (Graphics2D) graphics.create();
@@ -103,7 +103,12 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
         return "Offline Snapshot · " + time;
     }
 
-    private static void drawPlayerPreview(Graphics2D graphics, Layout layout, BufferedImage preview) {
+    private static void drawPlayerPreview(
+        Graphics2D graphics,
+        Layout layout,
+        BufferedImage preview,
+        boolean drawMatte
+    ) {
         Rectangle area = layout.getPlayerPreview();
         if (area == null || preview == null) return;
         double scale = Math.min((double) area.width / preview.getWidth(), (double) area.height / preview.getHeight());
@@ -117,33 +122,35 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
             layer.setComposite(AlphaComposite.SrcOver);
             layer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            int inset = 3;
-            int panelX = area.x + inset;
-            int panelY = area.y + inset;
-            int panelWidth = area.width - inset * 2;
-            int panelHeight = area.height - inset * 2;
-            int arc = 14;
-            layer.setPaint(new GradientPaint(
-                panelX, panelY, new Color(112, 124, 132, 175),
-                panelX, panelY + panelHeight, new Color(42, 51, 58, 205)
-            ));
-            layer.fillRoundRect(panelX, panelY, panelWidth, panelHeight, arc, arc);
+            if (drawMatte) {
+                int inset = 3;
+                int panelX = area.x + inset;
+                int panelY = area.y + inset;
+                int panelWidth = area.width - inset * 2;
+                int panelHeight = area.height - inset * 2;
+                int arc = 14;
+                layer.setPaint(new GradientPaint(
+                    panelX, panelY, new Color(112, 124, 132, 175),
+                    panelX, panelY + panelHeight, new Color(42, 51, 58, 205)
+                ));
+                layer.fillRoundRect(panelX, panelY, panelWidth, panelHeight, arc, arc);
 
-            float glowX = area.x + area.width / 2.0f;
-            float glowY = area.y + area.height * 0.43f;
-            float glowRadius = Math.max(area.width, area.height) * 0.58f;
-            layer.setPaint(new RadialGradientPaint(
-                glowX,
-                glowY,
-                glowRadius,
-                new float[] {0.0f, 1.0f},
-                new Color[] {new Color(225, 232, 235, 62), new Color(120, 132, 140, 0)}
-            ));
-            layer.fillRoundRect(panelX, panelY, panelWidth, panelHeight, arc, arc);
+                float glowX = area.x + area.width / 2.0f;
+                float glowY = area.y + area.height * 0.43f;
+                float glowRadius = Math.max(area.width, area.height) * 0.58f;
+                layer.setPaint(new RadialGradientPaint(
+                    glowX,
+                    glowY,
+                    glowRadius,
+                    new float[] {0.0f, 1.0f},
+                    new Color[] {new Color(225, 232, 235, 62), new Color(120, 132, 140, 0)}
+                ));
+                layer.fillRoundRect(panelX, panelY, panelWidth, panelHeight, arc, arc);
 
-            layer.setStroke(new BasicStroke(1.5f));
-            layer.setColor(new Color(222, 231, 235, 78));
-            layer.drawRoundRect(panelX, panelY, panelWidth - 1, panelHeight - 1, arc, arc);
+                layer.setStroke(new BasicStroke(1.5f));
+                layer.setColor(new Color(222, 231, 235, 78));
+                layer.drawRoundRect(panelX, panelY, panelWidth - 1, panelHeight - 1, arc, arc);
+            }
 
             layer.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             layer.drawImage(preview, x, y, width, height, null);

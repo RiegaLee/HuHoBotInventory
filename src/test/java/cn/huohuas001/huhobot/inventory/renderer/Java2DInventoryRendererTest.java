@@ -3,7 +3,9 @@ package cn.huohuas001.huhobot.inventory.renderer;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.asset.VanillaImportedAssetProvider;
 import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
+import cn.huohuas001.huhobot.inventory.model.InventorySlot;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
+import cn.huohuas001.huhobot.inventory.model.SlotType;
 import cn.huohuas001.huhobot.inventory.skin.DefaultPlayerSkinProvider;
 import cn.huohuas001.huhobot.inventory.skin.PlayerModelRenderer;
 import cn.huohuas001.huhobot.inventory.skin.PlayerSkin;
@@ -65,6 +67,7 @@ class Java2DInventoryRendererTest {
         assertTrue(theme.getAssetPackVersion().contains("26.2"));
         assertFalse(theme.isDrawTitle());
         assertFalse(theme.isDrawSlotBackgrounds());
+        assertFalse(theme.isDrawPlayerPreviewMatte());
         assertTrue(theme.isNearestNeighborTextures());
 
         for (String material : new String[] {
@@ -83,8 +86,8 @@ class Java2DInventoryRendererTest {
 
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("MockPlayer");
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot);
-        assertEquals(704, result.getWidth());
-        assertEquals(664, result.getHeight());
+        assertEquals(780, result.getWidth());
+        assertEquals(544, result.getHeight());
         assertTrue(result.getByteSize() > 10_000);
         assertTrue(result.getByteSize() < 4 * 1024 * 1024);
 
@@ -94,18 +97,26 @@ class Java2DInventoryRendererTest {
     }
 
     @Test
-    void faithfulBackgroundUsesCreativeStyleBlankCraftingPanel() throws Exception {
+    void faithfulBackgroundUsesFullCreativePanelWithoutTrashButton() throws Exception {
         Theme theme = ThemeLoader.load(FAITHFUL_THEME);
         BufferedImage background = theme.getBackground();
-        int panel = background.getRGB(380, 60);
-        for (int y = 70; y < 210; y++) for (int x = 390; x < 682; x++) {
-            assertEquals(panel, background.getRGB(x, y),
-                "survival crafting controls must be absent at " + x + ',' + y);
+        assertEquals(780, background.getWidth());
+        assertEquals(544, background.getHeight());
+        for (int y = 436; y < 520; y++) for (int x = 688; x < 760; x++) {
+            assertEquals(background.getRGB(764, y), background.getRGB(x, y),
+                "trash button must be replaced with the adjacent panel color at " + x + ',' + y);
         }
-        assertNotEquals(panel, background.getRGB(390, 334),
-            "removing crafting controls must not erase the storage grid");
-        assertNotEquals(panel, background.getRGB(306, 248),
-            "removing crafting controls must not erase the offhand slot");
+        Layout layout = theme.getLayout();
+        assertEquals(new java.awt.Rectangle(212, 20, 72, 72),
+            layout.slotBounds(InventorySlot.empty(SlotType.ARMOR_HEAD, 0)));
+        assertEquals(new java.awt.Rectangle(428, 128, 72, 72),
+            layout.slotBounds(InventorySlot.empty(SlotType.ARMOR_FEET, 0)));
+        assertEquals(new java.awt.Rectangle(136, 76, 72, 72),
+            layout.slotBounds(InventorySlot.empty(SlotType.OFFHAND, 0)));
+        assertEquals(new java.awt.Rectangle(32, 212, 72, 72),
+            layout.slotBounds(InventorySlot.empty(SlotType.STORAGE, 0)));
+        assertEquals(new java.awt.Rectangle(32, 444, 72, 72),
+            layout.slotBounds(InventorySlot.empty(SlotType.HOTBAR, 0)));
     }
 
     @Test
@@ -119,21 +130,19 @@ class Java2DInventoryRendererTest {
             "src", "test-fixtures", "skins", "blue-enderman-avatar.png"
         ).toFile());
         BufferedImage preview = new PlayerModelRenderer(area.width, area.height).render(
-            new PlayerSkin(texture, "blue-enderman-pv8", "REPORTED_SKIN_FIXTURE", false)
+            new PlayerSkin(texture, "blue-enderman-pv9", "REPORTED_SKIN_FIXTURE", false)
         );
-        InventorySnapshot snapshot = new MockInventoryDataSource("blue-enderman-pv8")
+        InventorySnapshot snapshot = new MockInventoryDataSource("blue-enderman-pv9")
             .createSnapshot("BlueEnderman");
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot, preview);
         BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(result.getBytes()));
 
-        assertEquals(704, decoded.getWidth());
-        assertEquals(664, decoded.getHeight());
-        assertEquals(decoded.getRGB(380, 60), decoded.getRGB(500, 120),
-            "the reported-skin proof must retain the blank creative-style crafting panel");
+        assertEquals(780, decoded.getWidth());
+        assertEquals(544, decoded.getHeight());
 
         Path output = Paths.get(
             "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875",
-            "player-head-shell", "inventory-pv8-blue-enderman-creative-layout.png"
+            "player-head-shell", "inventory-pv9-blue-enderman-creative-layout.png"
         );
         Files.createDirectories(output.getParent());
         Files.write(output, result.getBytes());
@@ -163,9 +172,11 @@ class Java2DInventoryRendererTest {
             }
         }
         assertTrue(changed > 1000, "player preview must replace the empty black character area");
-        int mattePixel = decoded.getRGB(area.x + 12, area.y + 12);
-        assertNotEquals(background.getRGB(area.x + 12, area.y + 12), mattePixel);
-        assertTrue(luminance(mattePixel) >= 30, "matte panel must separate dark skins from the black theme background");
+        assertEquals(
+            background.getRGB(area.x + 12, area.y + 12),
+            decoded.getRGB(area.x + 12, area.y + 12),
+            "transparent player pixels must retain the native creative player panel"
+        );
 
         Path output = Paths.get(
             "build", "rendered-test-output",
@@ -180,6 +191,7 @@ class Java2DInventoryRendererTest {
         Theme theme = ThemeLoader.load(FAITHFUL_THEME);
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("Steve");
         java.awt.Rectangle area = theme.getLayout().getPlayerPreview();
+        java.awt.Rectangle freshness = theme.getLayout().getFreshness();
         BufferedImage preview = new PlayerModelRenderer(area.width, area.height)
             .render(new DefaultPlayerSkinProvider().getFallback());
         Java2DInventoryRenderer renderer = new Java2DInventoryRenderer(theme);
@@ -191,9 +203,10 @@ class Java2DInventoryRendererTest {
         );
         BufferedImage offline = ImageIO.read(new ByteArrayInputStream(offlineResult.getBytes()));
         int changed = 0;
-        for (int y = area.y; y < area.y + 28; y++) for (int x = area.x; x < area.x + area.width; x++)
+        for (int y = freshness.y; y < freshness.y + freshness.height; y++)
+            for (int x = freshness.x; x < freshness.x + freshness.width; x++)
             if (realtime.getRGB(x, y) != offline.getRGB(x, y)) changed++;
-        assertTrue(changed > 100, "offline timestamp badge must be visible inside the preview panel");
+        assertTrue(changed > 100, "offline timestamp badge must be visible in its dedicated area");
         Path output = Paths.get("build", "rendered-test-output", "inventory-1.10.0-offline-snapshot.png");
         Files.createDirectories(output.getParent());
         Files.write(output, offlineResult.getBytes());
@@ -255,8 +268,30 @@ class Java2DInventoryRendererTest {
         copyTheme(FAITHFUL_THEME, legacy);
         org.bukkit.configuration.file.YamlConfiguration yaml =
             org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(legacy.resolve("layout.yml").toFile());
+        yaml.set("canvas.width", 704);
+        yaml.set("canvas.height", 664);
+        yaml.set("storage.start-x", 28);
+        yaml.set("storage.start-y", 332);
+        yaml.set("hotbar.start-x", 28);
+        yaml.set("hotbar.start-y", 564);
+        yaml.set("armor.head.x", 28);
+        yaml.set("armor.head.y", 28);
+        yaml.set("armor.chest.x", 28);
+        yaml.set("armor.chest.y", 100);
+        yaml.set("armor.legs.x", 28);
+        yaml.set("armor.legs.y", 172);
+        yaml.set("armor.feet.x", 28);
+        yaml.set("armor.feet.y", 244);
+        yaml.set("offhand.x", 304);
+        yaml.set("offhand.y", 244);
         yaml.set("player-preview", null);
+        yaml.set("freshness", null);
         yaml.save(legacy.resolve("layout.yml").toFile());
+        ImageIO.write(
+            new BufferedImage(704, 664, BufferedImage.TYPE_INT_ARGB),
+            "png",
+            legacy.resolve("background.png").toFile()
+        );
 
         Theme theme = ThemeLoader.load(legacy);
         java.awt.Rectangle preview = theme.getLayout().getPlayerPreview();
@@ -277,10 +312,4 @@ class Java2DInventoryRendererTest {
         });
     }
 
-    private static int luminance(int argb) {
-        int red = (argb >>> 16) & 0xff;
-        int green = (argb >>> 8) & 0xff;
-        int blue = argb & 0xff;
-        return (red * 299 + green * 587 + blue * 114) / 1000;
-    }
 }
