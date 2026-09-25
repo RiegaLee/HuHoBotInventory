@@ -35,6 +35,14 @@ public final class EmbeddedHuHoBotHost implements AutoCloseable {
     public static EmbeddedHuHoBotHost start(JavaPlugin plugin) {
         ServicesManager services = plugin.getServer().getServicesManager();
         DynamicBindingServices bindings = new DynamicBindingServices(services);
+        RegisteredServiceProvider<BindingService> bindingAuthority =
+            services.getRegistration(BindingService.class);
+        if (bindingAuthority == null) {
+            throw new IllegalStateException(
+                "HuHoBotGameAuthCode 已加载，但没有注册可用的 BindingService"
+            );
+        }
+        plugin.getLogger().info("已连接 GameAuthCode 绑定服务，背包查询将使用已验证绑定");
         RegisteredServiceProvider<HuHoBotService> existing =
             services.getRegistration(HuHoBotService.class);
         if (existing != null) {

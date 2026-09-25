@@ -846,9 +846,8 @@ class InventoryAddonSessionTest {
         assertBoundary(cn.huohuas001.huhobot.inventory.command.InventoryCommand.class);
 
         String pluginYaml = new String(readResource("plugin.yml"), java.nio.charset.StandardCharsets.UTF_8);
-        assertTrue(pluginYaml.contains("depend: [HuHoBotPenguin]"));
+        assertTrue(pluginYaml.contains("depend: [HuHoBotPenguin, HuHoBotGameAuthCode]"));
         assertTrue(pluginYaml.contains("softdepend: [SkinsRestorer]"));
-        assertFalse(pluginYaml.contains("HuHoBotGameAuthCode"));
         assertTrue(pluginYaml.contains("main: cn.huohuas001.huhobot.inventory.MinecraftInventoryPlugin"));
     }
 

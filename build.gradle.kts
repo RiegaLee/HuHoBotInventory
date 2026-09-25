@@ -240,9 +240,6 @@ tasks.test {
 
 tasks.jar {
     archiveFileName.set("HuHoBot-Inventory-${project.version}.jar")
-    from(zipTree(huhobotApiJar)) {
-        include("cn/huohuas001/huhobot/api/**")
-    }
 }
 
 val vanillaAssetsToolJar by tasks.registering(Jar::class) {
@@ -315,8 +312,8 @@ val verifyAddonJar by tasks.registering {
                     it.endsWith(".png")
             }
             check(bundledIcons == 1413) { "Expected 1413 bundled MB7 icons, found $bundledIcons" }
-            check("cn/huohuas001/huhobot/api/HuHoBotService.class" in entries) {
-                "Official-compatible Inventory JAR must embed huhobot-api"
+            check(entries.none { it.startsWith("cn/huohuas001/huhobot/api/") }) {
+                "Inventory must use the HuHoBot API supplied by its GameAuthCode dependency"
             }
             check(entries.none {
                 it.startsWith("cn/huohuas001/bot/") ||
