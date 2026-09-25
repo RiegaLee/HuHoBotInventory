@@ -7,6 +7,7 @@ import org.gradle.api.attributes.java.TargetJvmVersion
 
 plugins {
     java
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
 }
 
 group = "cn.huohuas001.huhobot.addons"
@@ -51,7 +52,7 @@ val huhobotQqSdkJar = dependencyJar(
 dependencies {
     compileOnly(files(huhobotQqSdkJar))
     compileOnly(files(huhobotApiJar))
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
     compileOnly("net.skinsrestorer:skinsrestorer-api:15.10.2")
 
     testImplementation(files(huhobotApiJar))
@@ -63,6 +64,9 @@ dependencies {
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
 }
+
+paperweight.reobfArtifactConfiguration =
+    io.papermc.paperweight.userdev.ReobfArtifactConfiguration.MOJANG_PRODUCTION
 
 // The addon remains Java 8 bytecode, but its optional SkinsRestorer v15 adapter runs only on the
 // project's Java 21 Paper baseline. Declaring that resolution baseline lets javac 21 consume the
@@ -318,9 +322,12 @@ val verifyAddonJar by tasks.registering {
                 it.startsWith("cn/huohuas001/bot/") ||
                     it.startsWith("io/github/kloping/") ||
                     it.startsWith("cn/huohuas001/huhobotPenguin/") ||
-                    it.startsWith("net/skinsrestorer/")
+                    it.startsWith("net/skinsrestorer/") ||
+                    it.startsWith("net/minecraft/") ||
+                    it.startsWith("org/bukkit/") ||
+                    it.startsWith("io/papermc/")
             }) {
-                "Addon JAR must not bundle Core/QQ SDK/SkinsRestorer implementation classes"
+                "Addon JAR must not bundle Core/QQ SDK/SkinsRestorer/Paper implementation classes"
             }
             check(entries.none {
                 it.startsWith("data/") ||

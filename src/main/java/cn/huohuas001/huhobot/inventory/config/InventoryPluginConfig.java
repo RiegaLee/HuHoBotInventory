@@ -12,7 +12,7 @@ import java.util.Set;
 
 /** Validated configuration owned exclusively by the Inventory addon. */
 public final class InventoryPluginConfig {
-    public static final int CURRENT_VERSION = 12;
+    public static final int CURRENT_VERSION = 13;
 
     private final boolean debugEnabled;
     private final String commandName;
@@ -320,6 +320,7 @@ public final class InventoryPluginConfig {
         setIfMissing(config, "player-preview.connect-timeout-ms", 4000);
         setIfMissing(config, "player-preview.read-timeout-ms", 8000);
         setIfMissing(config, "offline-inventory.enabled", true);
+        setIfMissing(config, "offline-inventory.direct-playerdata", true);
         setIfMissing(config, "offline-inventory.allow-legacy-unverified", false);
         setIfMissing(config, "offline-inventory.directory", "data/offline-snapshots");
         setIfMissing(config, "offline-inventory.periodic-save-seconds", 300);
@@ -342,6 +343,7 @@ public final class InventoryPluginConfig {
         setIfMissing(config, "ender-chest.image-file-name", "ender-chest.png");
         setIfMissing(config, "ender-chest.optional-caption", "Ender Chest: %player%");
         setIfMissing(config, "offline-ender-chest.enabled", true);
+        setIfMissing(config, "offline-ender-chest.direct-playerdata", true);
         setIfMissing(config, "offline-ender-chest.allow-legacy-unverified", false);
         setIfMissing(config, "offline-ender-chest.directory", "data/offline-ender-chest-snapshots");
         setIfMissing(config, "offline-ender-chest.periodic-save-seconds", 300);

@@ -11,6 +11,7 @@ import cn.huohuas001.huhobot.api.Registration;
 import cn.huohuas001.huhobot.inventory.command.InventoryCommand;
 import cn.huohuas001.huhobot.inventory.config.InventoryPluginConfig;
 import cn.huohuas001.huhobot.inventory.datasource.InventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.renderer.InventoryRenderer;
 import cn.huohuas001.huhobot.inventory.qq.InventoryButtonBridge;
 import cn.huohuas001.huhobot.inventory.skin.PlayerPreviewService;
@@ -108,6 +109,29 @@ final class InventoryAddonSession implements AutoCloseable {
         OfflineInventorySnapshotStore offlineEnderChestStore,
         InventoryButtonBridge buttonBridge
     ) {
+        return start(
+            service, descriptor, config, mockDataSource, onlineDataSource, renderer,
+            previewService, offlineStore, null, enderChestDataSource, enderChestRenderer,
+            offlineEnderChestStore, null, buttonBridge
+        );
+    }
+
+    static InventoryAddonSession start(
+        HuHoBotService service,
+        PluginDescriptor descriptor,
+        InventoryPluginConfig config,
+        InventoryDataSource mockDataSource,
+        InventoryDataSource onlineDataSource,
+        InventoryRenderer renderer,
+        PlayerPreviewService previewService,
+        OfflineInventorySnapshotStore offlineStore,
+        OfflineInventoryDataSource offlinePlayerDataSource,
+        InventoryDataSource enderChestDataSource,
+        InventoryRenderer enderChestRenderer,
+        OfflineInventorySnapshotStore offlineEnderChestStore,
+        OfflineInventoryDataSource offlineEnderChestPlayerDataSource,
+        InventoryButtonBridge buttonBridge
+    ) {
         Objects.requireNonNull(service, "service");
         Objects.requireNonNull(descriptor, "descriptor");
         Objects.requireNonNull(config, "config");
@@ -170,6 +194,7 @@ final class InventoryAddonSession implements AutoCloseable {
                 context.getLogger(),
                 previewService,
                 offlineStore,
+                offlinePlayerDataSource,
                 buttonBridge
             );
             registrations.add(context.getCommands().register(onlineSpec, onlineHandler));
@@ -214,6 +239,7 @@ final class InventoryAddonSession implements AutoCloseable {
                     context.getBindings(),
                     context.getLogger(),
                     offlineEnderChestStore,
+                    offlineEnderChestPlayerDataSource,
                     buttonBridge
                 );
                 registrations.add(context.getCommands().register(enderChestSpec, enderChestHandler));

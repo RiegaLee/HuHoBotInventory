@@ -31,6 +31,7 @@ import cn.huohuas001.huhobot.inventory.config.InventoryPluginConfig;
 import cn.huohuas001.huhobot.inventory.datasource.InventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.InventoryDataSourceException;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.renderer.InventoryRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.InventoryRenderMetadata;
 import cn.huohuas001.huhobot.inventory.renderer.RenderResult;
@@ -476,6 +477,66 @@ class InventoryAddonSessionTest {
                 .toCompletableFuture().get();
             assertEquals(InventoryRenderMetadata.Freshness.REALTIME, metadata.get().getFreshness());
             assertEquals("realtime-test", renderedSnapshot.get().getSourceServer());
+        } finally {
+            session.close();
+            store.close();
+        }
+    }
+
+    @Test
+    void readOnlyPlayerdataWinsBeforeYamlSnapshot(@TempDir Path temp) throws Exception {
+        FakeService service = new FakeService(ApiVersion.CURRENT, allCapabilities());
+        cn.huohuas001.huhobot.inventory.model.InventorySnapshot stored =
+            new MockInventoryDataSource("yaml-fallback").createSnapshot("Steve");
+        cn.huohuas001.huhobot.inventory.model.InventorySnapshot direct =
+            new cn.huohuas001.huhobot.inventory.model.InventorySnapshot(
+                stored.getSchemaVersion(), stored.getPlayerUuid(), stored.getPlayerName(),
+                stored.getCapturedAt(), "paper-playerdata", "paper-playerdata-test",
+                stored.getStorage(), stored.getHotbar(), stored.getArmor(), stored.getOffhand()
+            );
+        service.context.bind(
+            "group-open-id", "openid", "Steve", stored.getPlayerUuid(), BindingVerificationState.VERIFIED
+        );
+        OfflineInventorySnapshotStore store = new OfflineInventorySnapshotStore(temp, Logger.getAnonymousLogger());
+        store.saveAsync(stored).get();
+        InventoryDataSource offline = player -> {
+            CompletableFuture<cn.huohuas001.huhobot.inventory.model.InventorySnapshot> failed =
+                new CompletableFuture<cn.huohuas001.huhobot.inventory.model.InventorySnapshot>();
+            failed.completeExceptionally(new InventoryDataSourceException(
+                InventoryDataSourceException.Reason.PLAYER_OFFLINE, "offline"
+            ));
+            return failed;
+        };
+        AtomicBoolean playerdataAvailable = new AtomicBoolean(true);
+        OfflineInventoryDataSource playerdata = (uuid, name) -> {
+            if (playerdataAvailable.get()) return CompletableFuture.completedFuture(Optional.of(direct));
+            CompletableFuture<Optional<cn.huohuas001.huhobot.inventory.model.InventorySnapshot>> failed =
+                new CompletableFuture<Optional<cn.huohuas001.huhobot.inventory.model.InventorySnapshot>>();
+            failed.completeExceptionally(new IllegalStateException("damaged test playerdata"));
+            return failed;
+        };
+        AtomicReference<String> renderedSource = new AtomicReference<String>();
+        InventoryRenderer renderer = snapshot -> {
+            renderedSource.set(snapshot.getSourceServer());
+            return new RenderResult(new byte[] {3, 1, 4}, "image/png", 704, 664);
+        };
+
+        InventoryAddonSession session = InventoryAddonSession.start(
+            service, descriptor(), config(), new MockInventoryDataSource("mock"), offline, renderer,
+            null, store, playerdata, null, null, null, null, InventoryButtonBridge.UNAVAILABLE
+        );
+        try {
+            service.context.handler("inventory")
+                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+                .toCompletableFuture().get();
+            assertEquals("paper-playerdata", renderedSource.get());
+            assertArrayEquals(new byte[] {3, 1, 4}, service.context.gateway.lastImage);
+
+            playerdataAvailable.set(false);
+            service.context.handler("inventory")
+                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+                .toCompletableFuture().get();
+            assertEquals("yaml-fallback", renderedSource.get());
         } finally {
             session.close();
             store.close();

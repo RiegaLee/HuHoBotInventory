@@ -37,3 +37,8 @@ HuHoBot、Paper/Spigot、SkinsRestorer 及 QQ SDK 仅作为编译期或运行期
 ## 设计参考
 
 人物第二层的公开行为研究参考了 tr7zw/3d-Skin-Layers；本项目未复制或捆绑该项目的源码、二进制或材质。详见 Faithful 主题来源说明。
+
+离线玩家数据加载的边界处理参考了 InvSee++ 的公开实现思路；本项目独立实现只读加载，没有复制或捆绑 InvSee++ 的源码与二进制，也不要求服务器安装 InvSee++。
+
+- 项目：https://github.com/Jannyboy11/InvSee-plus-plus
+- 许可证：https://github.com/Jannyboy11/InvSee-plus-plus/blob/master/LICENSE

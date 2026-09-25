@@ -13,6 +13,8 @@ import cn.huohuas001.huhobot.inventory.host.EmbeddedHuHoBotHost;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineEnderChestDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.PaperOfflineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.SkinsRestorerHeadTextureResolver;
 import cn.huohuas001.huhobot.inventory.head.PlayerHeadIconCache;
 import cn.huohuas001.huhobot.inventory.renderer.Java2DInventoryRenderer;
@@ -172,6 +174,7 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 ? new BukkitOnlineEnderChestDataSource(this, config.getEnderChestSourceServer())
                 : null;
             OfflineInventorySnapshotStore snapshotStore = null;
+            OfflineInventoryDataSource offlinePlayerDataSource = null;
             if (config.isOfflineInventoryEnabled()) {
                 Path snapshotDirectory = configuredPath(config.getOfflineSnapshotDirectory());
                 snapshotStore = new OfflineInventorySnapshotStore(
@@ -183,9 +186,19 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                     "Offline inventory snapshots enabled at " + snapshotDirectory +
                         " (periodic save " + config.getOfflinePeriodicSaveSeconds() + "s)"
                 );
+                if (getConfig().getBoolean("offline-inventory.direct-playerdata", true)) {
+                    offlinePlayerDataSource = new PaperOfflineInventoryDataSource(
+                        this, config.getOnlineSourceServer(),
+                        PaperOfflineInventoryDataSource.Kind.INVENTORY
+                    );
+                    getLogger().info(
+                        "Read-only Paper playerdata inventory lookup enabled; YAML snapshots are fallback only"
+                    );
+                }
             }
 
             OfflineInventorySnapshotStore enderChestSnapshotStore = null;
+            OfflineInventoryDataSource offlineEnderChestPlayerDataSource = null;
             if (config.isEnderChestEnabled() && config.isOfflineEnderChestEnabled()) {
                 Path snapshotDirectory = configuredPath(config.getOfflineEnderChestSnapshotDirectory());
                 enderChestSnapshotStore = new OfflineInventorySnapshotStore(
@@ -199,6 +212,15 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                     "Offline Ender Chest snapshots enabled at " + snapshotDirectory +
                         " (periodic save " + config.getOfflineEnderChestPeriodicSaveSeconds() + "s)"
                 );
+                if (getConfig().getBoolean("offline-ender-chest.direct-playerdata", true)) {
+                    offlineEnderChestPlayerDataSource = new PaperOfflineInventoryDataSource(
+                        this, config.getEnderChestSourceServer(),
+                        PaperOfflineInventoryDataSource.Kind.ENDER_CHEST
+                    );
+                    getLogger().info(
+                        "Read-only Paper playerdata Ender Chest lookup enabled; YAML snapshots are fallback only"
+                    );
+                }
             }
 
             HuHoBotService hostService = embeddedHost.getService();
@@ -274,9 +296,11 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 inventoryRenderer,
                 previewService,
                 snapshotStore,
+                offlinePlayerDataSource,
                 enderChestSource,
                 enderChestRenderer,
                 enderChestSnapshotStore,
+                offlineEnderChestPlayerDataSource,
                 buttonBridge
             );
             getLogger().info(

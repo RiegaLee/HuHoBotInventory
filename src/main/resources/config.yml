@@ -1,4 +1,4 @@
-config-version: 12
+config-version: 13
 
 # 仅排查问题时开启；关闭时普通查询不输出调试日志。
 debug: false
@@ -46,6 +46,8 @@ binding:
 
 offline-inventory:
   enabled: true
+  # Read Paper's original playerdata in read-only mode first; never writes or edits the .dat file.
+  direct-playerdata: true
   # Persistent snapshots require verified identity by default, even when live legacy lookup remains compatible.
   allow-legacy-unverified: false
   directory: data/offline-snapshots
@@ -53,6 +55,8 @@ offline-inventory:
 
 offline-ender-chest:
   enabled: true
+  # Uses the same read-only original playerdata loader as offline inventory queries.
+  direct-playerdata: true
   # Kept separate from inventory snapshots so the two data sets can never overwrite each other.
   allow-legacy-unverified: false
   directory: data/offline-ender-chest-snapshots

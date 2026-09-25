@@ -171,7 +171,7 @@ class InventoryPluginConfigTest {
         yaml.set("render.theme", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(12, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals("faithful32x", yaml.getString("render.theme"));
         assertFalse(yaml.getBoolean("render.custom-background.enabled"));
         assertEquals("inventory.png", yaml.getString("render.custom-background.inventory-file"));
@@ -194,13 +194,29 @@ class InventoryPluginConfigTest {
         yaml.set("render.theme", "cozyui-plus");
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(12, yaml.getInt("config-version"));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals(java.util.Arrays.asList("inv", "我的背包"), yaml.getStringList("online-command.aliases"));
         assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
         assertEquals("用法：/我的背包 [账号序号]", yaml.getString("messages.usage"));
         assertEquals("用法：/我的末影箱 [账号序号]", yaml.getString("messages.ender-chest-usage"));
         assertEquals("faithful32x", yaml.getString("render.theme"));
+        assertTrue(yaml.getBoolean("offline-inventory.direct-playerdata"));
+        assertTrue(yaml.getBoolean("offline-ender-chest.direct-playerdata"));
         assertEquals("faithful32x", InventoryPluginConfig.load(yaml).getThemeId());
+    }
+
+    @Test
+    void migratesVersionTwelveWithExplicitReadOnlyPlayerdataSwitches() {
+        YamlConfiguration yaml = phaseOneConfig();
+        InventoryPluginConfig.migrateToCurrent(yaml);
+        yaml.set("config-version", 12);
+        yaml.set("offline-inventory.direct-playerdata", null);
+        yaml.set("offline-ender-chest.direct-playerdata", null);
+
+        assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
+        assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
+        assertTrue(yaml.getBoolean("offline-inventory.direct-playerdata"));
+        assertTrue(yaml.getBoolean("offline-ender-chest.direct-playerdata"));
     }
 
     private static YamlConfiguration phaseOneConfig() {

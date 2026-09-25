@@ -19,6 +19,7 @@ import cn.huohuas001.huhobot.api.TaskScheduler;
 import cn.huohuas001.huhobot.inventory.config.InventoryPluginConfig;
 import cn.huohuas001.huhobot.inventory.datasource.InventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.InventoryDataSourceException;
+import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
 import cn.huohuas001.huhobot.inventory.qq.InventoryButton;
 import cn.huohuas001.huhobot.inventory.qq.InventoryButtonBridge;
@@ -58,6 +59,7 @@ public final class InventoryCommand implements CommandHandler {
     private final Mode mode;
     private final PlayerPreviewService previewService;
     private final OfflineInventorySnapshotStore offlineStore;
+    private final OfflineInventoryDataSource offlinePlayerDataSource;
     private final InventoryButtonBridge buttonBridge;
     private final boolean adminLookupOnly;
     private final Map<String, Long> requesterCooldowns = new HashMap<String, Long>();
@@ -195,6 +197,23 @@ public final class InventoryCommand implements CommandHandler {
         );
     }
 
+    public static InventoryCommand online(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        BindingService bindings,
+        PluginLogger logger,
+        PlayerPreviewService previewService,
+        OfflineInventorySnapshotStore offlineStore,
+        OfflineInventoryDataSource offlinePlayerDataSource,
+        InventoryButtonBridge buttonBridge
+    ) {
+        return new InventoryCommand(
+            dataSource, renderer, config, bindings, logger, Mode.ONLINE, previewService, offlineStore,
+            offlinePlayerDataSource, buttonBridge, false
+        );
+    }
+
     public static InventoryCommand enderChest(
         InventoryDataSource dataSource,
         InventoryRenderer renderer,
@@ -206,6 +225,22 @@ public final class InventoryCommand implements CommandHandler {
     ) {
         return new InventoryCommand(
             dataSource, renderer, config, bindings, logger, Mode.ENDER_CHEST, null, offlineStore, buttonBridge
+        );
+    }
+
+    public static InventoryCommand enderChest(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        BindingService bindings,
+        PluginLogger logger,
+        OfflineInventorySnapshotStore offlineStore,
+        OfflineInventoryDataSource offlinePlayerDataSource,
+        InventoryButtonBridge buttonBridge
+    ) {
+        return new InventoryCommand(
+            dataSource, renderer, config, bindings, logger, Mode.ENDER_CHEST, null, offlineStore,
+            offlinePlayerDataSource, buttonBridge, false
         );
     }
 
@@ -246,6 +281,25 @@ public final class InventoryCommand implements CommandHandler {
         InventoryButtonBridge buttonBridge,
         boolean adminLookupOnly
     ) {
+        this(
+            dataSource, renderer, config, bindings, logger, mode, previewService, offlineStore,
+            null, buttonBridge, adminLookupOnly
+        );
+    }
+
+    private InventoryCommand(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        BindingService bindings,
+        PluginLogger logger,
+        Mode mode,
+        PlayerPreviewService previewService,
+        OfflineInventorySnapshotStore offlineStore,
+        OfflineInventoryDataSource offlinePlayerDataSource,
+        InventoryButtonBridge buttonBridge,
+        boolean adminLookupOnly
+    ) {
         this.dataSource = Objects.requireNonNull(dataSource, "dataSource");
         this.renderer = Objects.requireNonNull(renderer, "renderer");
         this.config = Objects.requireNonNull(config, "config");
@@ -254,6 +308,7 @@ public final class InventoryCommand implements CommandHandler {
         this.mode = Objects.requireNonNull(mode, "mode");
         this.previewService = previewService;
         this.offlineStore = offlineStore;
+        this.offlinePlayerDataSource = offlinePlayerDataSource;
         this.buttonBridge = Objects.requireNonNull(buttonBridge, "buttonBridge");
         this.adminLookupOnly = adminLookupOnly;
     }
@@ -783,7 +838,8 @@ public final class InventoryCommand implements CommandHandler {
         TargetResolution resolution,
         CompletableFuture<CommandResult> result
     ) {
-        if (!offlineEnabled() || offlineStore == null || resolution.binding == null) {
+        if (!offlineEnabled() || (offlinePlayerDataSource == null && offlineStore == null) ||
+            resolution.binding == null) {
             completeKnownText(context, result, playerOfflineMessage());
             return;
         }
@@ -803,6 +859,50 @@ public final class InventoryCommand implements CommandHandler {
             completeKnownText(context, result, config.getBindingVerificationRequiredMessage());
             return;
         }
+        if (offlinePlayerDataSource == null) {
+            tryStoredSnapshot(context, observed, result);
+            return;
+        }
+
+        CompletionStage<Optional<InventorySnapshot>> directStage;
+        try {
+            directStage = offlinePlayerDataSource.getInventory(observed, resolution.target);
+            if (directStage == null) throw new IllegalStateException("OfflineInventoryDataSource returned null");
+        } catch (Throwable error) {
+            logger.warning("Could not start read-only playerdata query; using saved snapshot: " + error.getMessage());
+            tryStoredSnapshot(context, observed, result);
+            return;
+        }
+        directStage.whenComplete((loaded, loadError) -> {
+            if (loadError != null) {
+                Throwable cause = unwrap(loadError);
+                if (cause instanceof InventoryDataSourceException &&
+                    ((InventoryDataSourceException) cause).getReason() ==
+                        InventoryDataSourceException.Reason.PLAYER_STATE_CHANGED) {
+                    completeKnownText(context, result, playerStateChangedMessage());
+                    return;
+                }
+                logger.warning("Read-only playerdata query failed; using saved snapshot: " + cause.getMessage());
+                tryStoredSnapshot(context, observed, result);
+                return;
+            }
+            if (loaded == null || !loaded.isPresent()) {
+                tryStoredSnapshot(context, observed, result);
+                return;
+            }
+            renderOfflineSnapshot(context, observed, loaded.get(), result);
+        });
+    }
+
+    private void tryStoredSnapshot(
+        CommandContext context,
+        UUID observed,
+        CompletableFuture<CommandResult> result
+    ) {
+        if (offlineStore == null) {
+            completeKnownText(context, result, offlineSnapshotMissingMessage());
+            return;
+        }
         try {
             context.getScheduler().runAsync(() -> {
                 Optional<InventorySnapshot> stored = offlineStore.load(observed);
@@ -810,15 +910,27 @@ public final class InventoryCommand implements CommandHandler {
                     completeKnownText(context, result, offlineSnapshotMissingMessage());
                     return;
                 }
-                InventorySnapshot snapshot = stored.get();
-                if (!observed.equals(snapshot.getPlayerUuid())) {
-                    completeKnownText(context, result, config.getBindingVerificationRequiredMessage());
-                    return;
-                }
-                renderAndSend(
-                    context, snapshot, InventoryRenderMetadata.offline(snapshot.getCapturedAt()), result
-                );
+                renderOfflineSnapshot(context, observed, stored.get(), result);
             });
+        } catch (Throwable error) {
+            failWithText(context, result, "Could not schedule offline inventory fallback", error);
+        }
+    }
+
+    private void renderOfflineSnapshot(
+        CommandContext context,
+        UUID observed,
+        InventorySnapshot snapshot,
+        CompletableFuture<CommandResult> result
+    ) {
+        if (!observed.equals(snapshot.getPlayerUuid())) {
+            completeKnownText(context, result, config.getBindingVerificationRequiredMessage());
+            return;
+        }
+        try {
+            context.getScheduler().runAsync(() -> renderAndSend(
+                context, snapshot, InventoryRenderMetadata.offline(snapshot.getCapturedAt()), result
+            ));
         } catch (Throwable error) {
             failWithText(context, result, "Could not schedule offline inventory render", error);
         }
