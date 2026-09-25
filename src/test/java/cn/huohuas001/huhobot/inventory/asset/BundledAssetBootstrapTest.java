@@ -29,7 +29,7 @@ class BundledAssetBootstrapTest {
         BundledAssetBootstrap.Installation first = BundledAssetBootstrap.install(dataRoot, classpath);
 
         assertEquals(
-            "inventory-assets-v13-mb7-pv9-glint-bed-shield-enderchest-hd64-pd1337875-cozyui-creative",
+            "inventory-assets-v14-mb7-pv13-faithful-special-heads",
             first.getPackId()
         );
         assertEquals(1413, first.getGeneratedIcons());

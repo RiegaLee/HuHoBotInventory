@@ -5,7 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +29,8 @@ final class BlockModelRenderer {
     }
 
     BufferedImage render(Model model, TextureLoader textures, boolean shadingEnabled) {
-        int[] pixels = new int[WORK_SIZE * WORK_SIZE];
-        double[] depth = new double[pixels.length];
-        Arrays.fill(depth, Double.NEGATIVE_INFINITY);
+        @SuppressWarnings("unchecked")
+        List<Fragment>[] fragments = (List<Fragment>[]) new List<?>[WORK_SIZE * WORK_SIZE];
 
         for (Element element : model.elements) {
             for (Map.Entry<String, Face> faceEntry : element.faces.entrySet()) {
@@ -40,12 +39,13 @@ final class BlockModelRenderer {
                 BufferedImage texture = textures.load(textureId);
                 if (texture == null) continue;
                 drawFace(
-                    pixels, depth, element, faceEntry.getKey(), faceEntry.getValue(), texture,
+                    fragments, element, faceEntry.getKey(), faceEntry.getValue(), texture,
                     model.gui, model.tints, shadingEnabled
                 );
             }
         }
 
+        int[] pixels = composite(fragments);
         BufferedImage working = new BufferedImage(WORK_SIZE, WORK_SIZE, BufferedImage.TYPE_INT_ARGB);
         working.setRGB(0, 0, WORK_SIZE, WORK_SIZE, pixels, 0, WORK_SIZE);
         // Keep the model baker at the final Faithful slot resolution. MB6 threw away half of this
@@ -93,8 +93,7 @@ final class BlockModelRenderer {
     }
 
     private static void drawFace(
-        int[] pixels,
-        double[] depth,
+        List<Fragment>[] fragments,
         Element element,
         String direction,
         Face face,
@@ -129,13 +128,12 @@ final class BlockModelRenderer {
         }
         double brightness = shadingEnabled && element.shade ? light(normal) : 1.0;
         int tint = face.tintIndex >= 0 && face.tintIndex < tints.size() ? tints.get(face.tintIndex) : 0xffffff;
-        triangle(pixels, depth, projected[0], projected[1], projected[2], coordinates[0], coordinates[1], coordinates[2], texture, brightness, tint);
-        triangle(pixels, depth, projected[0], projected[2], projected[3], coordinates[0], coordinates[2], coordinates[3], texture, brightness, tint);
+        triangle(fragments, projected[0], projected[1], projected[2], coordinates[0], coordinates[1], coordinates[2], texture, brightness, tint);
+        triangle(fragments, projected[0], projected[2], projected[3], coordinates[0], coordinates[2], coordinates[3], texture, brightness, tint);
     }
 
     private static void triangle(
-        int[] pixels,
-        double[] depth,
+        List<Fragment>[] fragments,
         Screen a,
         Screen b,
         Screen c,
@@ -163,7 +161,6 @@ final class BlockModelRenderer {
                 if (wa < -0.00001 || wb < -0.00001 || wc < -0.00001) continue;
                 double z = wa * a.z + wb * b.z + wc * c.z;
                 int offset = y * WORK_SIZE + x;
-                if (z + 0.00001 < depth[offset]) continue;
                 double u = wa * ta.u + wb * tb.u + wc * tc.u;
                 double v = wa * ta.v + wb * tb.v + wc * tc.v;
                 int tx = clamp((int) Math.floor(u / 16.0 * texture.getWidth()), 0, texture.getWidth() - 1);
@@ -172,10 +169,33 @@ final class BlockModelRenderer {
                 int alpha = color >>> 24;
                 if (alpha == 0) continue;
                 color = shade(applyTint(color, tint), brightness);
-                pixels[offset] = blend(color, pixels[offset]);
-                depth[offset] = z;
+                List<Fragment> pixel = fragments[offset];
+                if (pixel == null) {
+                    pixel = new ArrayList<Fragment>(2);
+                    fragments[offset] = pixel;
+                }
+                pixel.add(new Fragment(z, color));
             }
         }
+    }
+
+    /**
+     * Composites every visible model surface from back to front. Keeping only the nearest
+     * fragment made nested translucent models such as honey blocks lose their inner layer,
+     * leaving the baked icon at half opacity and washing its color into the slot background.
+     */
+    private static int[] composite(List<Fragment>[] fragments) {
+        int[] pixels = new int[fragments.length];
+        Comparator<Fragment> backToFront = Comparator.comparingDouble(fragment -> fragment.depth);
+        for (int offset = 0; offset < fragments.length; offset++) {
+            List<Fragment> pixel = fragments[offset];
+            if (pixel == null) continue;
+            pixel.sort(backToFront);
+            int color = 0;
+            for (Fragment fragment : pixel) color = blend(fragment.color, color);
+            pixels[offset] = color;
+        }
+        return pixels;
     }
 
     private static double edge(double ax, double ay, double bx, double by, double px, double py) {
@@ -427,5 +447,14 @@ final class BlockModelRenderer {
         final double u;
         final double v;
         Uv(double u, double v) { this.u = u; this.v = v; }
+    }
+
+    private static final class Fragment {
+        final double depth;
+        final int color;
+        Fragment(double depth, int color) {
+            this.depth = depth;
+            this.color = color;
+        }
     }
 }

@@ -12,8 +12,12 @@ import cn.huohuas001.huhobot.inventory.host.EmbeddedHuHoBotHost;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineEnderChestDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.SkinsRestorerHeadTextureResolver;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadIconCache;
 import cn.huohuas001.huhobot.inventory.renderer.Java2DInventoryRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.EnderChestRenderer;
+import cn.huohuas001.huhobot.inventory.renderer.InventoryRenderer;
+import cn.huohuas001.huhobot.inventory.renderer.PlayerHeadPreparingRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.Theme;
 import cn.huohuas001.huhobot.inventory.renderer.ThemeLoader;
 import cn.huohuas001.huhobot.inventory.renderer.TextureResolver;
@@ -35,8 +39,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.awt.Rectangle;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /** Independent Bukkit addon for Mock and exact online-player inventory PNG delivery. */
@@ -46,6 +55,8 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
     private OfflineInventorySnapshotManager enderChestSnapshotManager;
     private InventoryButtonBridge buttonBridge = InventoryButtonBridge.UNAVAILABLE;
     private EmbeddedHuHoBotHost embeddedHost;
+    private PlayerHeadIconCache playerHeadIcons;
+    private ExecutorService playerHeadExecutor;
 
     @Override
     public void onEnable() {
@@ -99,6 +110,28 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 equipmentAssets,
                 getDataFolder().toPath().resolve("cache").resolve("armor-items")
             ));
+            playerHeadExecutor = Executors.newFixedThreadPool(2, new ThreadFactory() {
+                private int number;
+
+                @Override public synchronized Thread newThread(Runnable task) {
+                    Thread thread = new Thread(task, "HuHoBotInventory-PlayerHead-" + (++number));
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
+            playerHeadIcons = new PlayerHeadIconCache(
+                getDataFolder().toPath().resolve("cache").resolve("player-head-icons").resolve("v4"),
+                getLogger(),
+                playerHeadExecutor,
+                2000,
+                32,
+                2,
+                Duration.ofSeconds(600),
+                2000,
+                3000,
+                new SkinsRestorerHeadTextureResolver()
+            );
+            theme.getTextures().setPlayerHeadIcons(playerHeadIcons);
             if (!config.getThemeId().equals(theme.getId())) {
                 throw new IllegalArgumentException(
                     "Configured theme " + config.getThemeId() + " contains descriptor id " + theme.getId()
@@ -173,19 +206,27 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 ApiVersion.V1_3_0
             );
             buttonBridge = createButtonBridge();
+            InventoryRenderer inventoryRenderer = new PlayerHeadPreparingRenderer(
+                new Java2DInventoryRenderer(theme), playerHeadIcons, 4
+            );
+            InventoryRenderer enderChestRenderer = config.isEnderChestEnabled()
+                ? new PlayerHeadPreparingRenderer(
+                    new EnderChestRenderer(theme, themeDirectory.resolve("ender-chest-background.png")),
+                    playerHeadIcons,
+                    4
+                )
+                : null;
             session = InventoryAddonSession.start(
                 hostService,
                 descriptor,
                 config,
                 new MockInventoryDataSource(config.getMockSourceServer()),
                 onlineSource,
-                new Java2DInventoryRenderer(theme),
+                inventoryRenderer,
                 previewService,
                 snapshotStore,
                 enderChestSource,
-                config.isEnderChestEnabled()
-                    ? new EnderChestRenderer(theme, themeDirectory.resolve("ender-chest-background.png"))
-                    : null,
+                enderChestRenderer,
                 enderChestSnapshotStore,
                 buttonBridge
             );
@@ -348,6 +389,22 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
         if (enderChestSnapshotManager != null) {
             enderChestSnapshotManager.close();
             enderChestSnapshotManager = null;
+        }
+        if (playerHeadIcons != null) {
+            playerHeadIcons.close();
+            playerHeadIcons = null;
+        }
+        if (playerHeadExecutor != null) {
+            playerHeadExecutor.shutdown();
+            try {
+                if (!playerHeadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    playerHeadExecutor.shutdownNow();
+                }
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                playerHeadExecutor.shutdownNow();
+            }
+            playerHeadExecutor = null;
         }
         if (embeddedHost != null) {
             embeddedHost.close();

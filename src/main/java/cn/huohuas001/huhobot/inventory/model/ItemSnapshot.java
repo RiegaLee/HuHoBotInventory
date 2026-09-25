@@ -1,6 +1,7 @@
 package cn.huohuas001.huhobot.inventory.model;
 
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualDescriptor;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.potion.PotionVisualDescriptor;
 import java.util.Objects;
 
@@ -16,6 +17,7 @@ public final class ItemSnapshot {
     private final String textureHint;
     private final ArmorVisualDescriptor armorVisual;
     private final PotionVisualDescriptor potionVisual;
+    private final PlayerHeadVisualDescriptor playerHeadVisual;
 
     public ItemSnapshot(
         String materialKey,
@@ -29,7 +31,7 @@ public final class ItemSnapshot {
     ) {
         this(
             materialKey, amount, damage, maxDamage, displayName, customModelData,
-            enchantmentGlint, textureHint, null, null
+            enchantmentGlint, textureHint, null, null, null
         );
     }
 
@@ -46,7 +48,7 @@ public final class ItemSnapshot {
     ) {
         this(
             materialKey, amount, damage, maxDamage, displayName, customModelData,
-            enchantmentGlint, textureHint, armorVisual, null
+            enchantmentGlint, textureHint, armorVisual, null, null
         );
     }
 
@@ -61,6 +63,25 @@ public final class ItemSnapshot {
         String textureHint,
         ArmorVisualDescriptor armorVisual,
         PotionVisualDescriptor potionVisual
+    ) {
+        this(
+            materialKey, amount, damage, maxDamage, displayName, customModelData,
+            enchantmentGlint, textureHint, armorVisual, potionVisual, null
+        );
+    }
+
+    public ItemSnapshot(
+        String materialKey,
+        int amount,
+        int damage,
+        int maxDamage,
+        String displayName,
+        Integer customModelData,
+        boolean enchantmentGlint,
+        String textureHint,
+        ArmorVisualDescriptor armorVisual,
+        PotionVisualDescriptor potionVisual,
+        PlayerHeadVisualDescriptor playerHeadVisual
     ) {
         this.materialKey = requireText(materialKey, "materialKey");
         if (amount < 1) throw new IllegalArgumentException("amount must be at least 1");
@@ -83,6 +104,10 @@ public final class ItemSnapshot {
             throw new IllegalArgumentException("potionVisual item type must match materialKey");
         }
         this.potionVisual = potionVisual;
+        if (playerHeadVisual != null && !"minecraft:player_head".equals(this.materialKey)) {
+            throw new IllegalArgumentException("playerHeadVisual requires minecraft:player_head");
+        }
+        this.playerHeadVisual = playerHeadVisual;
     }
 
     public static ItemSnapshot basic(String materialKey, int amount) {
@@ -115,4 +140,5 @@ public final class ItemSnapshot {
     public String getTextureHint() { return textureHint; }
     public ArmorVisualDescriptor getArmorVisual() { return armorVisual; }
     public PotionVisualDescriptor getPotionVisual() { return potionVisual; }
+    public PlayerHeadVisualDescriptor getPlayerHeadVisual() { return playerHeadVisual; }
 }

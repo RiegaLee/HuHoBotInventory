@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PlayerModelRendererTest {
     @Test
     void usesCanonicalMinecraftGeometryAndPv9QualityConstants() {
-        assertEquals("pv9", PlayerModelRenderer.CACHE_VERSION);
+        assertEquals("pv13", PlayerModelRenderer.CACHE_VERSION);
         assertEquals(4, PlayerModelRenderer.SUPERSAMPLE_SCALE);
         assertEquals(4, PlayerModelRenderer.supersampleScale(198, 283));
         assertEquals(1, PlayerModelRenderer.supersampleScale(2000, 2000));
@@ -40,8 +40,11 @@ class PlayerModelRendererTest {
         assertEquals(14, PlayerModelRenderer.BODY_WIDTH + 2 * PlayerModelRenderer.SLIM_ARM_WIDTH);
         assertEquals(0.5, PlayerModelRenderer.HEAD_OUTER_EXPANSION);
         assertEquals(0.25, PlayerModelRenderer.BODY_OUTER_EXPANSION);
-        assertEquals(1.0, PlayerModelRenderer.OUTER_ARMOR_EXPANSION);
-        assertEquals(0.5, PlayerModelRenderer.INNER_ARMOR_EXPANSION);
+        assertEquals(0.5, PlayerModelRenderer.OUTER_ARMOR_EXPANSION);
+        assertEquals(0.25, PlayerModelRenderer.INNER_ARMOR_EXPANSION);
+        assertEquals(4, PlayerModelRenderer.armorArmWidth(false));
+        assertEquals(3, PlayerModelRenderer.armorArmWidth(true));
+        assertEquals(-1, Integer.signum(PlayerModelRenderer.comparePaintOrder(1.0, 3, 2.0, 0)));
         assertEquals(0.16, PlayerModelRenderer.ARMOR_GLINT_UV_SCALE);
         assertEquals(Math.toRadians(10.0), PlayerModelRenderer.ARMOR_GLINT_ROTATION);
         assertEquals(0.75, PlayerModelRenderer.ARMOR_GLINT_STRENGTH);

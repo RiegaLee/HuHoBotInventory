@@ -6,6 +6,7 @@ import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
 import cn.huohuas001.huhobot.inventory.model.SlotType;
 import cn.huohuas001.huhobot.inventory.potion.PotionVisualDescriptor;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -135,7 +136,7 @@ public final class BukkitOnlineEnderChestDataSource implements InventoryDataSour
         return slots;
     }
 
-    private static String contentRevision(List<InventorySlot> slots) {
+    static String contentRevision(List<InventorySlot> slots) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             for (InventorySlot slot : slots) {
@@ -155,6 +156,8 @@ public final class BukkitOnlineEnderChestDataSource implements InventoryDataSour
                     update(digest, armor == null ? "" : armor.visualKey());
                     PotionVisualDescriptor potion = item.getPotionVisual();
                     update(digest, potion == null ? "" : potion.visualKey());
+                    PlayerHeadVisualDescriptor playerHead = item.getPlayerHeadVisual();
+                    update(digest, playerHead == null ? "" : playerHead.visualKey());
                 }
             }
             byte[] hash = digest.digest();

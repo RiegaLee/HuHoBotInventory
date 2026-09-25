@@ -10,9 +10,9 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.21.3"
+version = "1.22.0"
 
-val bundledAssetPackId = "inventory-assets-v13-mb7-pv9-glint-bed-shield-enderchest-hd64-pd1337875-cozyui-creative"
+val bundledAssetPackId = "inventory-assets-v14-mb7-pv13-faithful-special-heads"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"
 val bundledVanillaSource = file("data/imported-assets/vanilla/$bundledVanillaCacheKey")
 val generatedBundledResources = layout.buildDirectory.dir("generated/bundled-assets/resources")
@@ -289,6 +289,9 @@ val verifyAddonJar by tasks.registering {
                 "bundled-assets/pack/themes/faithful32x/overrides/items/minecraft/white_bed.png",
                 "bundled-assets/pack/themes/faithful32x/overrides/items/minecraft/black_bed.png",
                 "bundled-assets/pack/themes/faithful32x/special-variants/minecraft/trapped_chest_christmas.png",
+                "bundled-assets/pack/themes/faithful32x/special-variants/minecraft/clock.png",
+                "bundled-assets/pack/themes/faithful32x/special-variants/minecraft/dragon_head.png",
+                "bundled-assets/pack/themes/faithful32x/special-variants/minecraft/player_head.png",
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/trident.png",
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/potion_overlay.png",
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/tipped_arrow_base.png",

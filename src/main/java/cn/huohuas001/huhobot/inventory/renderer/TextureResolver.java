@@ -2,6 +2,7 @@ package cn.huohuas001.huhobot.inventory.renderer;
 
 import cn.huohuas001.huhobot.inventory.armor.ArmorItemIconRenderer;
 import cn.huohuas001.huhobot.inventory.asset.VanillaImportedAssetProvider;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadIconCache;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
 
 import javax.imageio.ImageIO;
@@ -41,6 +42,7 @@ public final class TextureResolver {
     private Consumer<ResolutionTrace> resolutionReporter = trace -> { };
     private ArmorItemIconRenderer armorItemRenderer;
     private RuntimeItemIconRenderer runtimeItemRenderer;
+    private PlayerHeadIconCache playerHeadIcons;
 
     TextureResolver(Path textureDirectory, Path fallbackPath) {
         this(
@@ -120,6 +122,13 @@ public final class TextureResolver {
         if (custom != null) {
             reportResolution(item, custom.source, "CUSTOM", "CUSTOM_OVERRIDE", "USER", custom.file);
             return custom;
+        }
+        if (playerHeadIcons != null) {
+            Optional<BufferedImage> playerHead = playerHeadIcons.find(item);
+            if (playerHead.isPresent()) {
+                reportResolution(item, Source.PLAYER_HEAD, "DYNAMIC", "PLAYER_HEAD_CACHE", "MOJANG_TEXTURE", null);
+                return new ResolvedTexture(playerHead.get(), Source.PLAYER_HEAD, null);
+            }
         }
         ResolvedTexture specialVariant = specialVariantDirectory == null ? null :
             resolveTheme(item, specialVariantDirectory, Source.GENERATED_SPECIAL_STATIC);
@@ -206,6 +215,10 @@ public final class TextureResolver {
 
     public synchronized void setArmorItemRenderer(ArmorItemIconRenderer renderer) {
         this.armorItemRenderer = Objects.requireNonNull(renderer, "renderer");
+    }
+
+    public synchronized void setPlayerHeadIcons(PlayerHeadIconCache cache) {
+        this.playerHeadIcons = Objects.requireNonNull(cache, "cache");
     }
 
     synchronized void setRuntimeItemRenderer(RuntimeItemIconRenderer renderer) {
@@ -379,6 +392,7 @@ public final class TextureResolver {
 
     public enum Source {
         CUSTOM_OVERRIDE, EXPLICIT_OVERRIDE, GENERATED_SPECIAL_STATIC, GENERATED_CACHE, GUI_MODEL, RUNTIME_COMPOSITE,
+        PLAYER_HEAD,
         LEGACY_STATIC, SPECIAL_UNSUPPORTED, UNKNOWN
     }
 

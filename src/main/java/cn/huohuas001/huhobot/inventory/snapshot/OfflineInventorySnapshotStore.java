@@ -1,6 +1,7 @@
 package cn.huohuas001.huhobot.inventory.snapshot;
 
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualDescriptor;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.model.InventorySlot;
 import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
@@ -33,7 +34,7 @@ import java.util.logging.Logger;
 
 /** Versioned, atomic, Bukkit-object-free persistence for last known inventory snapshots. */
 public final class OfflineInventorySnapshotStore implements AutoCloseable {
-    public static final int SCHEMA_VERSION = 3;
+    public static final int SCHEMA_VERSION = 4;
 
     private final Path root;
     private final Logger logger;
@@ -204,6 +205,15 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
             yaml.set(path + ".potion-visual.custom-color", potion.hasCustomColor());
             yaml.set(path + ".potion-visual.glint", potion.hasGlint());
         }
+        PlayerHeadVisualDescriptor playerHead = item.getPlayerHeadVisual();
+        yaml.set(path + ".player-head-visual.present", playerHead != null);
+        if (playerHead != null) {
+            yaml.set(path + ".player-head-visual.kind", playerHead.hasTextureHash() ? "texture" : "owner");
+            yaml.set(path + ".player-head-visual.texture-hash", playerHead.getTextureHash());
+            yaml.set(path + ".player-head-visual.owner-uuid",
+                playerHead.getOwnerUuid() == null ? null : playerHead.getOwnerUuid().toString());
+            yaml.set(path + ".player-head-visual.owner-name", playerHead.getOwnerName());
+        }
     }
 
     private static List<InventorySlot> readGrid(
@@ -225,6 +235,7 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
             ? Integer.valueOf(yaml.getInt(path + ".custom-model-data")) : null;
         ArmorVisualDescriptor armor = schema >= 2 ? readArmorVisual(yaml, path) : null;
         PotionVisualDescriptor potion = schema >= 3 ? readPotionVisual(yaml, path) : null;
+        PlayerHeadVisualDescriptor playerHead = schema >= 4 ? readPlayerHeadVisual(yaml, path) : null;
         ItemSnapshot item = new ItemSnapshot(
             required(yaml.getString(path + ".material"), path + ".material"),
             yaml.getInt(path + ".amount"),
@@ -235,7 +246,8 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
             yaml.getBoolean(path + ".enchantment-glint"),
             yaml.getString(path + ".texture-hint"),
             armor,
-            potion
+            potion,
+            playerHead
         );
         return InventorySlot.of(type, index, item);
     }
@@ -278,6 +290,27 @@ public final class OfflineInventorySnapshotStore implements AutoCloseable {
             yaml.getBoolean(base + ".custom-color"),
             yaml.getBoolean(base + ".glint")
         );
+    }
+
+    private static PlayerHeadVisualDescriptor readPlayerHeadVisual(YamlConfiguration yaml, String path) {
+        String base = path + ".player-head-visual";
+        if (!yaml.contains(base + ".present")) {
+            throw new IllegalArgumentException("missing player head visual marker " + base);
+        }
+        if (!yaml.getBoolean(base + ".present")) return null;
+        String kind = required(yaml.getString(base + ".kind"), base + ".kind");
+        if ("texture".equals(kind)) {
+            return new PlayerHeadVisualDescriptor(
+                required(yaml.getString(base + ".texture-hash"), base + ".texture-hash")
+            );
+        }
+        if ("owner".equals(kind)) {
+            return new PlayerHeadVisualDescriptor(
+                UUID.fromString(required(yaml.getString(base + ".owner-uuid"), base + ".owner-uuid")),
+                required(yaml.getString(base + ".owner-name"), base + ".owner-name")
+            );
+        }
+        throw new IllegalArgumentException("invalid player head visual kind " + base);
     }
 
     private static String required(String value, String field) {

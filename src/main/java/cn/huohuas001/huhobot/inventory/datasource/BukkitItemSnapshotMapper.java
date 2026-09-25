@@ -2,6 +2,8 @@ package cn.huohuas001.huhobot.inventory.datasource;
 
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualResolver;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadTextureUrl;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
 import cn.huohuas001.huhobot.inventory.potion.PotionVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.potion.PotionVisualResolver;
@@ -10,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 /** Converts Bukkit ItemStacks into immutable, renderer-neutral item snapshots on the main thread. */
 public final class BukkitItemSnapshotMapper {
@@ -32,8 +35,10 @@ public final class BukkitItemSnapshotMapper {
 
         ArmorVisualDescriptor armor = armorResolver.resolve(material, meta, enchantmentGlint);
         PotionVisualDescriptor potion = potionResolver.resolve(material, meta, enchantmentGlint);
+        PlayerHeadVisualDescriptor playerHead = resolvePlayerHead(material, meta);
         return mapValues(
-            material, stack.getAmount(), damage, displayName, customModelData, enchantmentGlint, armor, potion
+            material, stack.getAmount(), damage, displayName, customModelData, enchantmentGlint,
+            armor, potion, playerHead
         );
     }
 
@@ -57,9 +62,7 @@ public final class BukkitItemSnapshotMapper {
         boolean enchantmentGlint,
         ArmorVisualDescriptor armorVisual
     ) {
-        return mapValues(
-            material, amount, rawDamage, displayName, customModelData, enchantmentGlint, armorVisual, null
-        );
+        return mapValues(material, amount, rawDamage, displayName, customModelData, enchantmentGlint, armorVisual, null, null);
     }
 
     ItemSnapshot mapValues(
@@ -71,6 +74,23 @@ public final class BukkitItemSnapshotMapper {
         boolean enchantmentGlint,
         ArmorVisualDescriptor armorVisual,
         PotionVisualDescriptor potionVisual
+    ) {
+        return mapValues(
+            material, amount, rawDamage, displayName, customModelData, enchantmentGlint,
+            armorVisual, potionVisual, null
+        );
+    }
+
+    ItemSnapshot mapValues(
+        Material material,
+        int amount,
+        int rawDamage,
+        String displayName,
+        Integer customModelData,
+        boolean enchantmentGlint,
+        ArmorVisualDescriptor armorVisual,
+        PotionVisualDescriptor potionVisual,
+        PlayerHeadVisualDescriptor playerHeadVisual
     ) {
         if (isAir(material) || amount <= 0) return null;
         int maxDamage = maxDamage(material);
@@ -85,8 +105,32 @@ public final class BukkitItemSnapshotMapper {
             enchantmentGlint,
             null,
             armorVisual,
-            potionVisual
+            potionVisual,
+            playerHeadVisual
         );
+    }
+
+    static PlayerHeadVisualDescriptor resolvePlayerHead(Material material, ItemMeta meta) {
+        if (material != Material.PLAYER_HEAD || !(meta instanceof SkullMeta)) return null;
+        SkullMeta skull = (SkullMeta) meta;
+        try {
+            com.destroystokyo.paper.profile.PlayerProfile profile = skull.getPlayerProfile();
+            if (profile == null) return null;
+            PlayerHeadVisualDescriptor textured = profile.getTextures() == null ? null :
+                PlayerHeadTextureUrl.textureHash(profile.getTextures().getSkin())
+                    .map(PlayerHeadVisualDescriptor::new)
+                    .orElse(null);
+            if (textured != null) return textured;
+
+            // HeadDrop and modern Paper profile components may intentionally persist only
+            // owner UUID/name. SkinsRestorer resolves that identity off-thread later.
+            java.util.UUID ownerUuid = profile.getId();
+            String ownerName = profile.getName();
+            if (ownerUuid == null || ownerName == null || !ownerName.matches("[A-Za-z0-9_]{1,16}")) return null;
+            return new PlayerHeadVisualDescriptor(ownerUuid, ownerName);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     private static boolean isAir(Material material) {

@@ -17,7 +17,7 @@ import java.util.List;
 
 /** Fixed-pose, headless Java2D software renderer for a textured Minecraft player model. */
 public final class PlayerModelRenderer {
-    public static final String CACHE_VERSION = "pv9";
+    public static final String CACHE_VERSION = "pv13";
     public static final int WIDTH = 128;
     public static final int HEIGHT = 256;
     static final int SUPERSAMPLE_SCALE = 4;
@@ -35,8 +35,8 @@ public final class PlayerModelRenderer {
     static final int MODEL_HEIGHT = HEAD_SIZE + BODY_HEIGHT + LEG_HEIGHT;
     static final double HEAD_OUTER_EXPANSION = 0.5;
     static final double BODY_OUTER_EXPANSION = 0.25;
-    static final double OUTER_ARMOR_EXPANSION = 1.0;
-    static final double INNER_ARMOR_EXPANSION = 0.5;
+    static final double OUTER_ARMOR_EXPANSION = 0.5;
+    static final double INNER_ARMOR_EXPANSION = 0.25;
     static final double ARMOR_GLINT_UV_SCALE = 0.16;
     static final double ARMOR_GLINT_ROTATION = Math.toRadians(10.0);
     static final double ARMOR_GLINT_STRENGTH = 0.75;
@@ -45,12 +45,13 @@ public final class PlayerModelRenderer {
 
     private static final int BASE_SKIN_LAYER = 0;
     private static final int OUTER_SKIN_LAYER = 1;
-    private static final int ARMOR_LAYER = 2;
+    private static final int INNER_ARMOR_LAYER = 2;
+    private static final int OUTER_ARMOR_LAYER = 3;
 
     private static final double YAW = Math.toRadians(-22.0);
     private static final double PITCH = Math.toRadians(7.0);
     private static final int HORIZONTAL_PADDING = 10;
-    private static final int TOP_PADDING = 10;
+    private static final int TOP_PADDING = 14;
     private static final int BOTTOM_PADDING = 22;
 
     private final int outputWidth;
@@ -87,6 +88,10 @@ public final class PlayerModelRenderer {
         BufferedImage texture = standardCanvas(playerSkin.getImage());
         boolean legacy = playerSkin.getImage().getHeight() == 32;
         List<Face> faces = new ArrayList<Face>();
+        boolean helmetEquipped = equipped(equipment, ArmorVisualDescriptor.Slot.HEAD);
+        boolean chestEquipped = equipped(equipment, ArmorVisualDescriptor.Slot.CHEST);
+        boolean leggingsEquipped = equipped(equipment, ArmorVisualDescriptor.Slot.LEGS);
+        boolean bootsEquipped = equipped(equipment, ArmorVisualDescriptor.Slot.FEET);
 
         addCuboid(faces, texture, -4, 24, -4, 4, 32, 4, 0, 0, 8, 8, 8, 0.0, false);
         addCuboid(faces, texture, -4, 12, -2, 4, 24, 2, 16, 16, 8, 12, 4, 0.0, false);
@@ -100,23 +105,31 @@ public final class PlayerModelRenderer {
         addCuboid(faces, texture, 4, 12, -2, 4 + armWidth, 24, 2,
             legacy ? 40 : 32, legacy ? 16 : 48, armWidth, 12, 4, 0.0, false);
 
-        addCuboid(faces, texture, -4, 24, -4, 4, 32, 4, 32, 0, 8, 8, 8,
-            HEAD_OUTER_EXPANSION, true);
+        if (!helmetEquipped) {
+            addCuboid(faces, texture, -4, 24, -4, 4, 32, 4, 32, 0, 8, 8, 8,
+                HEAD_OUTER_EXPANSION, true);
+        }
         if (!legacy) {
-            addCuboid(faces, texture, -4, 12, -2, 4, 24, 2, 16, 32, 8, 12, 4,
-                BODY_OUTER_EXPANSION, true);
-            addCuboid(faces, texture, -4, 0, -2, 0, 12, 2, 0, 32, 4, 12, 4,
-                BODY_OUTER_EXPANSION, true);
-            addCuboid(faces, texture, 0, 0, -2, 4, 12, 2, 0, 48, 4, 12, 4,
-                BODY_OUTER_EXPANSION, true);
-            addCuboid(faces, texture, -4 - armWidth, 12, -2, -4, 24, 2,
-                40, 32, armWidth, 12, 4, BODY_OUTER_EXPANSION, true);
-            addCuboid(faces, texture, 4, 12, -2, 4 + armWidth, 24, 2,
-                48, 48, armWidth, 12, 4, BODY_OUTER_EXPANSION, true);
+            if (!chestEquipped && !leggingsEquipped) {
+                addCuboid(faces, texture, -4, 12, -2, 4, 24, 2, 16, 32, 8, 12, 4,
+                    BODY_OUTER_EXPANSION, true);
+            }
+            if (!leggingsEquipped && !bootsEquipped) {
+                addCuboid(faces, texture, -4, 0, -2, 0, 12, 2, 0, 32, 4, 12, 4,
+                    BODY_OUTER_EXPANSION, true);
+                addCuboid(faces, texture, 0, 0, -2, 4, 12, 2, 0, 48, 4, 12, 4,
+                    BODY_OUTER_EXPANSION, true);
+            }
+            if (!chestEquipped) {
+                addCuboid(faces, texture, -4 - armWidth, 12, -2, -4, 24, 2,
+                    40, 32, armWidth, 12, 4, BODY_OUTER_EXPANSION, true);
+                addCuboid(faces, texture, 4, 12, -2, 4 + armWidth, 24, 2,
+                    48, 48, armWidth, 12, 4, BODY_OUTER_EXPANSION, true);
+            }
         }
 
         if (equipment != null && equipmentAssets != null && !equipment.isEmpty()) {
-            addArmor(faces, equipment, equipmentAssets);
+            addArmor(faces, equipment, equipmentAssets, playerSkin.isSlim());
         }
 
         List<ProjectedFace> visible = new ArrayList<ProjectedFace>();
@@ -127,11 +140,10 @@ public final class PlayerModelRenderer {
         }
         Collections.sort(visible, new Comparator<ProjectedFace>() {
             @Override public int compare(ProjectedFace first, ProjectedFace second) {
-                int layer = Integer.compare(first.face.renderLayer, second.face.renderLayer);
-                if (layer != 0) return layer;
-                int depth = Double.compare(first.depth, second.depth);
-                if (depth != 0) return depth;
-                return 0;
+                return comparePaintOrder(
+                    first.depth, first.face.renderLayer,
+                    second.depth, second.face.renderLayer
+                );
             }
         });
         int supersample = supersampleScale(outputWidth, outputHeight);
@@ -144,6 +156,20 @@ public final class PlayerModelRenderer {
         return supersample == 1
             ? rasterized
             : downsample(rasterized, outputWidth, outputHeight);
+    }
+
+    private static boolean equipped(ArmorEquipmentSet equipment, ArmorVisualDescriptor.Slot slot) {
+        return equipment != null && equipment.get(slot) != null;
+    }
+
+    static int comparePaintOrder(
+        double firstDepth,
+        int firstLayer,
+        double secondDepth,
+        int secondLayer
+    ) {
+        int depth = Double.compare(firstDepth, secondDepth);
+        return depth != 0 ? depth : Integer.compare(firstLayer, secondLayer);
     }
 
     private static BufferedImage rasterize(
@@ -209,7 +235,8 @@ public final class PlayerModelRenderer {
     private static void addArmor(
         List<Face> faces,
         ArmorEquipmentSet equipment,
-        EquipmentAssetResolver assets
+        EquipmentAssetResolver assets,
+        boolean slim
     ) {
         ArmorVisualDescriptor head = equipment.get(ArmorVisualDescriptor.Slot.HEAD);
         if (head != null) {
@@ -219,13 +246,17 @@ public final class PlayerModelRenderer {
 
         ArmorVisualDescriptor chest = equipment.get(ArmorVisualDescriptor.Slot.CHEST);
         if (chest != null) {
+            int armorArmWidth = armorArmWidth(slim);
             addArmorPart(faces, chest, assets, false,
                 -4, 12, -2, 4, 24, 2, 16, 16, 8, 12, 4, OUTER_ARMOR_EXPANSION, false);
-            // The 26.1.2 client uses the independent standard 4px Humanoid armor arm for both classic and slim.
+            // Preview armor follows the selected skin arm width so the compact card does not show
+            // a 4px armor sleeve intersecting a 3px slim arm. UVs remain the canonical 4px layer.
             addArmorPart(faces, chest, assets, false,
-                -8, 12, -2, -4, 24, 2, 40, 16, 4, 12, 4, OUTER_ARMOR_EXPANSION, false);
+                -4 - armorArmWidth, 12, -2, -4, 24, 2,
+                40, 16, 4, 12, 4, OUTER_ARMOR_EXPANSION, false);
             addArmorPart(faces, chest, assets, false,
-                4, 12, -2, 8, 24, 2, 40, 16, 4, 12, 4, OUTER_ARMOR_EXPANSION, true);
+                4, 12, -2, 4 + armorArmWidth, 24, 2,
+                40, 16, 4, 12, 4, OUTER_ARMOR_EXPANSION, true);
         }
 
         ArmorVisualDescriptor legs = equipment.get(ArmorVisualDescriptor.Slot.LEGS);
@@ -247,6 +278,10 @@ public final class PlayerModelRenderer {
         }
     }
 
+    static int armorArmWidth(boolean slim) {
+        return slim ? SLIM_ARM_WIDTH : CLASSIC_ARM_WIDTH;
+    }
+
     /** Preserves the 26.1.2 order: first equipment layer, glint, remaining layers, then trim. */
     private static void addArmorPart(
         List<Face> faces,
@@ -265,12 +300,14 @@ public final class PlayerModelRenderer {
             Glint glint = first && descriptor.hasGlint()
                 ? new Glint(assets.resolveArmorGlintTexture()) : null;
             addArmorCuboid(faces, texture, minX, minY, minZ, maxX, maxY, maxZ,
-                u, v, width, height, depth, expansion, mirror, glint);
+                u, v, width, height, depth, expansion,
+                leggings ? INNER_ARMOR_LAYER : OUTER_ARMOR_LAYER, mirror, glint);
             first = false;
         }
         BufferedImage trim = assets.resolveArmorTrimTexture(descriptor, leggings);
         if (trim != null) addArmorCuboid(faces, trim, minX, minY, minZ, maxX, maxY, maxZ,
-            u, v, width, height, depth, expansion, mirror, null);
+            u, v, width, height, depth, expansion,
+            leggings ? INNER_ARMOR_LAYER : OUTER_ARMOR_LAYER, mirror, null);
     }
 
     private static void addArmorCuboid(
@@ -280,6 +317,7 @@ public final class PlayerModelRenderer {
         double maxX, double maxY, double maxZ,
         int u, int v, int width, int height, int depth,
         double expansion,
+        int renderLayer,
         boolean mirror,
         Glint glint
     ) {
@@ -288,7 +326,7 @@ public final class PlayerModelRenderer {
         addCuboidScaled(
             faces, texture, minX, minY, minZ, maxX, maxY, maxZ,
             u * scaleX, v * scaleY, width * scaleX, height * scaleY, depth * scaleX,
-            expansion, ARMOR_LAYER, mirror, glint
+            expansion, renderLayer, mirror, glint
         );
     }
 
@@ -472,9 +510,12 @@ public final class PlayerModelRenderer {
         double minY = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
         double maxY = Double.NEGATIVE_INFINITY;
-        for (ProjectedFace face : faces) for (Point2 point : face.points) {
-            minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x);
-            minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y);
+        for (ProjectedFace face : faces) {
+            if (face.face.renderLayer != BASE_SKIN_LAYER) continue;
+            for (Point2 point : face.points) {
+                minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x);
+                minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y);
+            }
         }
         double outputScale = (double) height / HEIGHT;
         double horizontalPadding = HORIZONTAL_PADDING * outputScale;

@@ -106,17 +106,18 @@ the runtime NamespacedKey layout `assets/minecraft/<path>.png` and are not expli
 Exact source paths, SHA-256 hashes, target paths, and processing are recorded in
 `ASSET_MANIFEST.tsv`.
 
-Player Preview PV9 fits the model to the active theme's final preview aspect ratio
+Player Preview PV13 fits the model to the active theme's final preview aspect ratio
 (`128x172` for Faithful), rasterizes the fitted projection at up to four times the final width and
 height, and then performs one quality downsample. This retains native Minecraft texture pixels
 while improving projected diagonals, outer-layer contours and limb edges. Faithful armor, trim,
 overlay, and glint layers retain their existing source resolution and projection order. Modern
 64x64 skin second layers are rendered for the hat, jacket, both sleeves and both trouser legs at
 the client dimensions: `0.5` model-pixel expansion for the head and `0.25` for the other parts.
-PV9 retains PV8's visible side walls around non-transparent outer-layer pixel boundaries and a 0.6 output
-pixel bleed across shared projected faces, preserving sparse one-pixel details without black
-raster cracks. Transparent UV pixels remain transparent and equipped armor renders in the later
-material pass.
+PV13 retains visible side walls around non-transparent outer-layer pixel boundaries and a 0.6
+output-pixel bleed across shared projected faces. Skin and armor faces are composited by depth,
+armor expansion is limited to `0.5`/`0.25` model pixels, slim arms keep their three-pixel armor
+width, and skin second layers hidden below equipped armor are omitted. These rules preserve sparse
+one-pixel details without black cracks, oversized armor or jacket pixels bleeding through gear.
 
 The independent voxel-layer behavior review used tr7zw's
 [`3d-Skin-Layers`](https://github.com/tr7zw/3d-Skin-Layers) commit
@@ -124,6 +125,20 @@ The independent voxel-layer behavior review used tr7zw's
 uses the standard `8x8x8`, `(32,0)` hat UV and converts present outer pixels into modeled depth.
 No source, binary, or asset from that project is copied into this Addon; the Java2D edge-wall
 implementation here is independent and deliberately remains a fixed-camera static PNG renderer.
+
+## Faithful special-item and player-head icons
+
+Clock, compass and recovery-compass use deterministic Faithful 32x frame `00`. Creeper,
+skeleton, wither-skeleton, zombie, dragon and piglin heads are rendered from the corresponding
+Faithful entity atlases as transparent 64x64 GUI objects. Their front and side UVs use Minecraft's
+GUI orientation and are not mirrored. The source is the official Faithful 32x Java `1.21.11`
+branch at commit `f2a1de2113920e4daf9b24c5465dd66cc61ad064`.
+
+The bundled player-head icon is only a generic Faithful Steve fallback. When an item contains a
+Paper profile, the addon captures its Mojang texture hash and asynchronously prepares that exact
+skin; owner-only profiles can be resolved through SkinsRestorer. The bounded cache accepts only
+`https://textures.minecraft.net/texture/<hash>` and waits for accepted heads before rendering the
+requested image. `tools/GenerateFaithfulRc21Icons.java` documents the reproducible conversion.
 
 `explicit-overrides.yml` is the authoritative human-readable list of final item overrides. Merely
 placing a PNG in the legacy `assets/` tree does not add it to this list.

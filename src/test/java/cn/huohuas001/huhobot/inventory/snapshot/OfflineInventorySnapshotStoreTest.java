@@ -2,6 +2,7 @@ package cn.huohuas001.huhobot.inventory.snapshot;
 
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.model.InventorySlot;
 import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
 import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
@@ -25,6 +26,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OfflineInventorySnapshotStoreTest {
@@ -138,7 +140,7 @@ class OfflineInventorySnapshotStoreTest {
 
             Path file = temp.resolve(expected.getPlayerUuid().toString() + ".yml");
             String yaml = new String(Files.readAllBytes(file), StandardCharsets.UTF_8)
-                .replaceFirst("schema-version: 3", "schema-version: 1");
+                .replaceFirst("schema-version: 4", "schema-version: 1");
             Files.write(file, yaml.getBytes(StandardCharsets.UTF_8));
             assertTrue(store.load(expected.getPlayerUuid()).isPresent(), "schema 1 snapshots must remain readable");
         } finally {
@@ -227,10 +229,43 @@ class OfflineInventorySnapshotStoreTest {
             String yaml = new String(
                 Files.readAllBytes(temp.resolve(expected.getPlayerUuid().toString() + ".yml")), StandardCharsets.UTF_8
             );
-            assertTrue(yaml.contains("schema-version: 3"));
+            assertTrue(yaml.contains("schema-version: 4"));
             assertTrue(yaml.contains("resolved-tint-rgb: 16262179"));
         } finally {
             afterRestart.close();
+        }
+    }
+
+    @Test
+    void persistsPlayerHeadIdentityAndKeepsSchemaThreeReadable(@TempDir Path temp) throws Exception {
+        InventorySnapshot base = new MockInventoryDataSource("paper-test").createSnapshot("HeadUser");
+        String hash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        ItemSnapshot head = new ItemSnapshot(
+            "minecraft:player_head", 1, 0, 0, null, null, false, null,
+            null, null, new PlayerHeadVisualDescriptor(hash)
+        );
+        List<InventorySlot> storage = new ArrayList<InventorySlot>(base.getStorage());
+        storage.set(0, InventorySlot.of(SlotType.STORAGE, 0, head));
+        InventorySnapshot expected = new InventorySnapshot(
+            InventorySnapshot.CURRENT_SCHEMA_VERSION,
+            base.getPlayerUuid(), base.getPlayerName(), base.getCapturedAt(), base.getSourceServer(),
+            "head-revision", storage, base.getHotbar(), base.getArmor(), base.getOffhand()
+        );
+
+        OfflineInventorySnapshotStore store = new OfflineInventorySnapshotStore(temp, Logger.getAnonymousLogger());
+        try {
+            store.saveAsync(expected).get();
+            ItemSnapshot loaded = store.load(expected.getPlayerUuid()).get().getStorage().get(0).getItem();
+            assertEquals(hash, loaded.getPlayerHeadVisual().getTextureHash());
+
+            Path file = temp.resolve(expected.getPlayerUuid().toString() + ".yml");
+            String yaml = new String(Files.readAllBytes(file), StandardCharsets.UTF_8)
+                .replaceFirst("schema-version: 4", "schema-version: 3");
+            Files.write(file, yaml.getBytes(StandardCharsets.UTF_8));
+            ItemSnapshot legacy = store.load(expected.getPlayerUuid()).get().getStorage().get(0).getItem();
+            assertNull(legacy.getPlayerHeadVisual());
+        } finally {
+            store.close();
         }
     }
 }

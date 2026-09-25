@@ -19,6 +19,10 @@ class FaithfulSpecialStaticOverrideTest {
     private static final Path ROOT = Paths.get(
         "src", "main", "resources", "themes", "faithful32x", "overrides", "items", "minecraft"
     );
+    private static final List<String> FIXED_SPECIALS = Arrays.asList(
+        "clock", "compass", "recovery_compass", "creeper_head", "dragon_head", "piglin_head",
+        "player_head", "skeleton_skull", "wither_skeleton_skull", "zombie_head"
+    );
     private static final List<String> CHESTS = Arrays.asList(
         "ender_chest", "trapped_chest", "copper_chest", "exposed_copper_chest",
         "weathered_copper_chest", "oxidized_copper_chest", "waxed_copper_chest",
@@ -83,6 +87,27 @@ class FaithfulSpecialStaticOverrideTest {
         assertEquals(64, image.getWidth());
         assertEquals(64, image.getHeight());
         assertFalse(Arrays.equals(Files.readAllBytes(christmas), bytes("trapped_chest")));
+    }
+
+    @Test
+    void faithfulSpecialIconsAreIndividualManagedTexturesInBothThemes() throws Exception {
+        for (String theme : Arrays.asList("faithful32x", "cozyui-plus")) {
+            Path root = Paths.get(
+                "src", "main", "resources", "themes", theme, "special-variants", "minecraft"
+            );
+            for (String item : FIXED_SPECIALS) {
+                Path path = root.resolve(item + ".png");
+                BufferedImage image = ImageIO.read(path.toFile());
+                assertTrue(image != null, theme + "/" + item);
+                int expected = item.endsWith("compass") || "clock".equals(item) ? 32 : 64;
+                assertEquals(expected, image.getWidth(), theme + "/" + item);
+                assertEquals(expected, image.getHeight(), theme + "/" + item);
+            }
+            assertFalse(Arrays.equals(
+                Files.readAllBytes(root.resolve("dragon_head.png")),
+                Files.readAllBytes(root.resolve("player_head.png"))
+            ));
+        }
     }
 
     private static void assertClientIcon(

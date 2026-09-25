@@ -22,6 +22,7 @@ import java.util.Objects;
 
 /** Compact 9x3 renderer used only for a player's private Ender Chest contents. */
 public final class EnderChestRenderer implements InventoryRenderer {
+    static final int ITEM_COUNT_FONT_SIZE = 26;
     public static final int WIDTH = 704;
     public static final int HEIGHT = 308;
     private static final Color COUNT = new Color(250, 250, 250);
@@ -106,7 +107,7 @@ public final class EnderChestRenderer implements InventoryRenderer {
 
     private void drawAmount(Graphics2D graphics, int slotX, int slotY, int amount) {
         String text = Integer.toString(amount);
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, ITEM_COUNT_FONT_SIZE));
         FontMetrics metrics = graphics.getFontMetrics();
         int x = slotX + layout.getSlotSize() - 4 - metrics.stringWidth(text);
         int y = slotY + layout.getSlotSize() - 4;

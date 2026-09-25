@@ -6,6 +6,7 @@ import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
 import cn.huohuas001.huhobot.inventory.model.SlotType;
 import cn.huohuas001.huhobot.inventory.armor.ArmorVisualDescriptor;
 import cn.huohuas001.huhobot.inventory.potion.PotionVisualDescriptor;
+import cn.huohuas001.huhobot.inventory.head.PlayerHeadVisualDescriptor;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -151,7 +152,7 @@ public final class BukkitOnlineInventoryDataSource implements InventoryDataSourc
         );
     }
 
-    private static String contentRevision(
+    static String contentRevision(
         List<InventorySlot> storage,
         List<InventorySlot> hotbar,
         List<InventorySlot> armor,
@@ -177,6 +178,8 @@ public final class BukkitOnlineInventoryDataSource implements InventoryDataSourc
                     update(digest, armorVisual == null ? "" : armorVisual.visualKey());
                     PotionVisualDescriptor potionVisual = item.getPotionVisual();
                     update(digest, potionVisual == null ? "" : potionVisual.visualKey());
+                    PlayerHeadVisualDescriptor playerHead = item.getPlayerHeadVisual();
+                    update(digest, playerHead == null ? "" : playerHead.visualKey());
                 }
             }
             byte[] hash = digest.digest();

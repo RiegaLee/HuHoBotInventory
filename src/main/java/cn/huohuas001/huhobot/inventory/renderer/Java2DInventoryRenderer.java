@@ -25,6 +25,7 @@ import java.util.Objects;
 
 /** Headless-safe Java2D renderer producing PNG bytes without temporary files. */
 public final class Java2DInventoryRenderer implements InventoryRenderer {
+    static final int ITEM_COUNT_FONT_SIZE = 26;
     private static final Color SLOT_FILL = new Color(12, 22, 29, 190);
     private static final Color SLOT_EDGE = new Color(102, 158, 177, 210);
     private static final Color SLOT_INNER = new Color(33, 54, 64, 220);
@@ -199,7 +200,7 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
 
     private void drawAmount(Graphics2D graphics, Layout layout, Rectangle bounds, int amount) {
         String text = Integer.toString(amount);
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, ITEM_COUNT_FONT_SIZE));
         FontMetrics metrics = graphics.getFontMetrics();
         Point offset = layout.getQuantityOffset();
         int x = bounds.x + offset.x - metrics.stringWidth(text);

@@ -64,7 +64,7 @@ class Java2DInventoryRendererTest {
     void rendersFaithfulThemeWithNamespacedTexturesAndWritesPrimaryPreview() throws Exception {
         Theme theme = ThemeLoader.load(FAITHFUL_THEME);
         assertEquals("faithful32x", theme.getId());
-        assertTrue(theme.getAssetPackVersion().contains("26.2"));
+        assertTrue(theme.getAssetPackVersion().contains("Faithful"));
         assertFalse(theme.isDrawTitle());
         assertFalse(theme.isDrawSlotBackgrounds());
         assertFalse(theme.isDrawPlayerPreviewMatte());

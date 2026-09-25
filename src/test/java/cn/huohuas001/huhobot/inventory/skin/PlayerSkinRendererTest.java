@@ -109,7 +109,7 @@ class PlayerSkinRendererTest {
             assertEquals(4L, files.filter(Files::isRegularFile).count());
         }
         try (java.util.stream.Stream<Path> files = Files.list(temp.resolve("previews"))) {
-            assertTrue(files.allMatch(path -> path.getFileName().toString().startsWith("pv9-198x283-")));
+            assertTrue(files.allMatch(path -> path.getFileName().toString().startsWith("pv13-198x283-")));
         }
     }
 

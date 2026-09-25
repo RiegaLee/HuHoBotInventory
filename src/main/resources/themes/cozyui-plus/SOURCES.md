@@ -59,3 +59,9 @@ GPL license does not relicense those independent files.
 
 Player skins and armor previews are rendered at runtime by HuHoBot Inventory and are
 not copied from CozyUI+.
+
+The copied Faithful special set now includes fixed frame-00 clock/compass icons and individually
+modeled creeper, skeleton, wither-skeleton, zombie, dragon, piglin and generic player heads. The
+player-head file is only a fallback: captured Paper profile textures are prepared from Mojang's
+texture service and take priority at render time. See the Faithful theme manifest and
+`tools/GenerateFaithfulRc21Icons.java` for exact hashes and the non-mirrored GUI orientation.
