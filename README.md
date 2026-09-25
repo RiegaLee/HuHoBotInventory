@@ -19,13 +19,13 @@
 
 ## 使用前需要什么
 
-- Spigot 或 Paper 服务端。
-- [HuHoBot-Penguin 主分支](https://github.com/HuHoBot/PenguinClient)。
+- Paper 1.21.11 服务端。
+- [HuHoBot-Penguin 1.3.0](https://github.com/HuHoBot/PenguinClient) 的 **Spigot / Paper 版**，JAR 文件名为 `HuHoBot-Penguin_Spigot-1.3.0.jar`。
 - [GameAuthCode](https://github.com/RiegaLee/HuHoBotGameAuthCode)，用于把 QQ 和游戏账号绑定起来。
 - AuthMeReloaded，用于确认绑定的是玩家本人。
 - SkinsRestorer 为可选插件；安装后可以提高自定义皮肤的读取成功率。
 
-> 当前版本只支持 HuHoBot-Penguin 主分支，不支持 PenguinAgent。
+HuHoBot-Penguin 主项目还提供 Nukkit、Allay 以及 BungeeCord / Velocity 版本；这些是不同服务端平台的独立产物。本插件属于 Bukkit / Paper Addon，应与上面的 Spigot / Paper 版一起安装。
 
 ## 安装
 
@@ -162,7 +162,7 @@ plugins/HuHoBotInventory/config.yml
 ## 已验证环境
 
 - Paper 1.21.11
-- HuHoBot-Penguin 主分支
+- HuHoBot-Penguin 1.3.0 的 Spigot / Paper 版（`HuHoBot-Penguin_Spigot-1.3.0.jar`）
 - GameAuthCode 1.7.0
 - SkinsRestorer 15.x（可选）
 
@@ -174,7 +174,7 @@ plugins/HuHoBotInventory/config.yml
 
 ## 许可证与资源说明
 
-原创代码和默认底图采用 [MIT License](LICENSE)。物品、装备和头颅渲染使用了 Faithful 32x 资源，这些资源仍适用 Faithful 自己的许可证。
+本项目的原创代码和默认底图跟随 HuHoBot-Penguin 主项目，采用 [GNU Affero General Public License v3.0](LICENSE)。物品、装备和头颅渲染使用了 Faithful 32x 资源，这些资源仍适用 Faithful 自己的许可证。
 
 详细说明：
 

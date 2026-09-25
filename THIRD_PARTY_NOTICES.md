@@ -1,6 +1,6 @@
 # Third-party notices
 
-HuHoBot Inventory 的原创源代码和默认主题原创资源采用仓库根目录的 MIT License。第三方资源不因此改用 MIT。
+HuHoBot Inventory 的原创源代码和默认主题原创资源跟随 HuHoBot-Penguin 主项目，采用仓库根目录的 GNU Affero General Public License v3.0。第三方资源不因此改用 AGPL v3.0。
 
 ## Faithful 32x
 
@@ -28,7 +28,7 @@ Faithful License，不能因与 GPL 界面资源放在同一主题目录而被�
 
 ## Minecraft / Mojang
 
-构建流程可以从用户自行取得的 Minecraft Java Edition 客户端 JAR 生成物品图标。Minecraft 名称、客户端资源和相关知识产权属于其各自权利人，不受本项目 MIT License 覆盖。本仓库不提交完整 Minecraft 客户端 JAR。
+构建流程可以从用户自行取得的 Minecraft Java Edition 客户端 JAR 生成物品图标。Minecraft 名称、客户端资源和相关知识产权属于其各自权利人，不受本项目 AGPL v3.0 覆盖。本仓库不提交完整 Minecraft 客户端 JAR。
 
 ## 编译期依赖
 

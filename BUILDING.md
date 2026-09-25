@@ -76,4 +76,4 @@ build/libs/HuHoBot-InventoryAssetsTool-1.22.0.jar
 
 ## 第三方资源
 
-构建和分发前请阅读 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 [Faithful License](THIRD_PARTY_LICENSES/Faithful-LICENSE.txt)。Faithful 资源不适用本项目的 MIT License，并包含署名及非商业使用要求。
+构建和分发前请阅读 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 与 [Faithful License](THIRD_PARTY_LICENSES/Faithful-LICENSE.txt)。Faithful 资源不适用本项目的 AGPL v3.0，并包含署名及非商业使用要求。
