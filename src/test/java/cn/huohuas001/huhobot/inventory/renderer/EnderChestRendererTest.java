@@ -11,14 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EnderChestRendererTest {
     @Test
-    void rendersCompactFaithfulThreeRowPngAndOfflineBadge() throws Exception {
+    void rendersCompactFaithfulThreeRowPngWithoutFreshnessBadge() throws Exception {
         Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         InventorySnapshot snapshot = new MockInventoryDataSource("ender-render-test")
             .createSnapshot("Steve");
@@ -43,7 +43,7 @@ class EnderChestRendererTest {
         assertEquals(694, realtime.getHeight());
         assertTrue(realtime.getByteSize() > 8_000);
         assertTrue(realtime.getByteSize() < 4 * 1024 * 1024);
-        assertNotEquals(java.util.Arrays.hashCode(realtime.getBytes()), java.util.Arrays.hashCode(offline.getBytes()));
+        assertArrayEquals(realtime.getBytes(), offline.getBytes());
         BufferedImage image = ImageIO.read(new ByteArrayInputStream(realtime.getBytes()));
         assertNotNull(image);
         assertEquals(1620, image.getWidth());

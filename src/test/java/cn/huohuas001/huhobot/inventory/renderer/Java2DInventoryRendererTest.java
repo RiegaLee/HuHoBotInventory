@@ -191,7 +191,7 @@ class Java2DInventoryRendererTest {
     }
 
     @Test
-    void offlineSnapshotRendersTimestampBadgeWithoutChangingSnapshotModel() throws Exception {
+    void offlineSnapshotRendersWithoutAVisibleFreshnessBadge() throws Exception {
         Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("Steve");
         java.awt.Rectangle area = theme.getLayout().getPlayerPreview();
@@ -210,20 +210,10 @@ class Java2DInventoryRendererTest {
         for (int y = freshness.y; y < freshness.y + freshness.height; y++)
             for (int x = freshness.x; x < freshness.x + freshness.width; x++)
             if (realtime.getRGB(x, y) != offline.getRGB(x, y)) changed++;
-        assertTrue(changed > 100, "offline timestamp badge must be visible in its dedicated area");
+        assertEquals(0, changed, "offline and realtime renders must have identical freshness areas");
         Path output = Paths.get("build", "rendered-test-output", "inventory-1.10.0-offline-snapshot.png");
         Files.createDirectories(output.getParent());
         Files.write(output, offlineResult.getBytes());
-    }
-
-    @Test
-    void offlineSnapshotLabelIsPortableAsciiText() {
-        InventoryRenderMetadata metadata = InventoryRenderMetadata.offline(
-            java.time.Instant.parse("2026-08-24T12:41:00Z")
-        );
-        String label = Java2DInventoryRenderer.offlineSnapshotLabel(metadata);
-        assertTrue(label.startsWith("Offline Snapshot · "));
-        assertFalse(label.contains("离线快照"));
     }
 
     @Test

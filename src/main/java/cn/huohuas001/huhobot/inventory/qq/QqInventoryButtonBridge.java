@@ -89,8 +89,9 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
                 return failed(diagnostic);
             }
             Keyboard keyboard = keyboard(buttons);
+            String content = buttonMarkdown(markdown, buttons);
             V2MsgData payload = requestPayload(
-                markdown,
+                content,
                 keyboard,
                 reference.getMessageId(),
                 reference.getMessageSequence()
@@ -238,6 +239,17 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
 
     private static String ownerKey(String groupOpenId, String userOpenId) {
         return groupOpenId + "\n" + userOpenId;
+    }
+
+    static String buttonMarkdown(String markdown, List<InventoryButton> buttons) {
+        String owner = null;
+        for (InventoryButton button : buttons) {
+            String candidate = button.getAllowedUserOpenId();
+            if (owner == null) owner = candidate;
+            else if (!owner.equals(candidate)) return markdown;
+        }
+        if (owner == null || !owner.matches("[A-Za-z0-9_-]{6,128}")) return markdown;
+        return "<qqbot-at-user id=\"" + owner + "\" />，" + markdown;
     }
 
     static Keyboard keyboard(List<InventoryButton> buttons) {

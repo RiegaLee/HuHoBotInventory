@@ -767,16 +767,11 @@ public final class InventoryCommand implements CommandHandler {
                 : mode == Mode.ENDER_CHEST
                     ? config.getEnderChestImageFileName()
                     : config.getOnlineImageFileName();
-            String caption = mode == Mode.MOCK
-                ? config.captionForMock(snapshot.getPlayerName())
-                : mode == Mode.ENDER_CHEST
-                    ? config.captionForEnderChest(snapshot.getPlayerName())
-                    : config.captionForOnline(snapshot.getPlayerName());
             sendStage = context.replyImage(
                 rendered.getBytes(),
                 rendered.getMimeType(),
                 fileName,
-                caption
+                null
             );
             if (sendStage == null) throw new IllegalStateException("MessageGateway returned null");
         } catch (Throwable error) {

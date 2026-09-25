@@ -68,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -91,7 +92,7 @@ class InventoryAddonSessionTest {
         assertArrayEquals(new byte[] {1, 2, 3, 4}, service.context.gateway.lastImage);
         assertEquals("image/png", service.context.gateway.lastMimeType);
         assertEquals("inventory.png", service.context.gateway.lastFileName);
-        assertEquals("Inventory: MockPlayer", service.context.gateway.lastCaption);
+        assertNull(service.context.gateway.lastCaption);
         assertEquals(0, service.context.gateway.textReplies.get());
         assertEquals(0, service.context.logger.infos.get());
 
@@ -201,7 +202,7 @@ class InventoryAddonSessionTest {
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
             assertEquals("Steve", requestedPlayer.get());
             assertEquals("inventory.png", service.context.gateway.lastFileName);
-            assertEquals("Inventory: Steve", service.context.gateway.lastCaption);
+            assertNull(service.context.gateway.lastCaption);
             assertArrayEquals(new byte[] {9, 8, 7}, service.context.gateway.lastImage);
         } finally {
             session.close();
@@ -238,7 +239,7 @@ class InventoryAddonSessionTest {
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
             assertEquals("Steve", requestedPlayer.get());
             assertEquals("ender-chest.png", service.context.gateway.lastFileName);
-            assertEquals("Ender Chest: Steve", service.context.gateway.lastCaption);
+            assertNull(service.context.gateway.lastCaption);
             assertArrayEquals(new byte[] {4, 2}, service.context.gateway.lastImage);
         } finally {
             session.close();

@@ -61,6 +61,21 @@ class QqInventoryButtonBridgeTest {
     }
 
     @Test
+    void selectionMarkdownMentionsItsSingleAllowedOwnerWithCurrentProtocol() {
+        String owner = "7F0F28DEB8FB211A5F2DB6B61F07D7CE";
+        assertEquals(
+            "<qqbot-at-user id=\"" + owner + "\" />，请选择账号（60 秒内有效）：",
+            QqInventoryButtonBridge.buttonMarkdown(
+                "请选择账号（60 秒内有效）：",
+                Arrays.asList(
+                    new InventoryButton("1 Steve", "已选择", "hbi:i:nonce:1", owner, 1),
+                    new InventoryButton("2 Alex", "已选择", "hbi:i:nonce:2", owner, 1)
+                )
+            )
+        );
+    }
+
+    @Test
     void expiredResultsUseSuccessAckAndExplicitRetryText() {
         assertEquals(1, InventoryButtonResult.EXPIRED_INVENTORY.getPlatformCode());
         assertEquals("账号选择已超时，请重新发送 /我的背包。",

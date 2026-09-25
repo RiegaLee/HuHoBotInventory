@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.24.0"
+version = "1.24.1"
 
 val bundledAssetPackId = "inventory-assets-v15-mb7-pv13-faithful-items-desktop-ui"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"

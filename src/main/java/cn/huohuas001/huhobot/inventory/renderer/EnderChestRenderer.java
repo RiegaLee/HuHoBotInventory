@@ -16,8 +16,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /** Compact 9x3 renderer used only for a player's private Ender Chest contents. */
@@ -66,7 +64,6 @@ public final class EnderChestRenderer implements InventoryRenderer {
         try {
             configure(graphics);
             graphics.drawImage(background, 0, 0, null);
-            drawFreshness(graphics, metadata);
             for (InventorySlot slot : snapshot.getStorage()) drawSlot(graphics, slot);
         } finally {
             graphics.dispose();
@@ -127,30 +124,6 @@ public final class EnderChestRenderer implements InventoryRenderer {
         graphics.fillRect(x, y, width, 4);
         graphics.setColor(remaining > 0.5d ? new Color(73, 214, 112) : new Color(238, 177, 47));
         graphics.fillRect(x, y, (int) Math.round(width * remaining), 4);
-    }
-
-    private void drawFreshness(Graphics2D graphics, InventoryRenderMetadata metadata) {
-        if (metadata == null || metadata.getFreshness() != InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT) return;
-        String time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-            .withZone(ZoneId.systemDefault()).format(metadata.getCapturedAt());
-        String label = "Offline Snapshot · " + time;
-        Graphics2D layer = (Graphics2D) graphics.create();
-        try {
-            Font font = new Font(Font.SANS_SERIF, Font.BOLD, 11);
-            layer.setFont(font);
-            FontMetrics metrics = layer.getFontMetrics(font);
-            int width = metrics.stringWidth(label) + 12;
-            layer.setColor(new Color(10, 18, 23, 185));
-            layer.fillRoundRect(layout.getFreshnessX(), layout.getFreshnessY(), width, 18, 8, 8);
-            layer.setColor(new Color(223, 237, 240));
-            layer.drawString(
-                label,
-                layout.getFreshnessX() + 6,
-                layout.getFreshnessY() + 13
-            );
-        } finally {
-            layer.dispose();
-        }
     }
 
     private void configure(Graphics2D graphics) {

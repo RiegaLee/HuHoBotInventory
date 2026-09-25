@@ -19,8 +19,6 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /** Headless-safe Java2D renderer producing PNG bytes without temporary files. */
@@ -75,45 +73,12 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
             configure(graphics, theme);
             graphics.drawImage(background, 0, 0, null);
             drawPlayerPreview(graphics, layout, playerPreview, theme.isDrawPlayerPreviewMatte());
-            drawFreshness(graphics, layout, metadata);
             if (theme.isDrawTitle()) drawTitle(graphics, layout, snapshot);
             for (InventorySlot slot : snapshot.getAllSlots()) drawSlot(graphics, layout, slot);
         } finally {
             graphics.dispose();
         }
         return encode(canvas);
-    }
-
-    private static void drawFreshness(Graphics2D graphics, Layout layout, InventoryRenderMetadata metadata) {
-        if (metadata == null || metadata.getFreshness() != InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT) return;
-        Rectangle area = layout.getFreshness();
-        if (area == null) return;
-        String label = offlineSnapshotLabel(metadata);
-        Graphics2D layer = (Graphics2D) graphics.create();
-        try {
-            Font font = new Font(Font.SANS_SERIF, Font.BOLD, 11);
-            FontMetrics metrics = layer.getFontMetrics(font);
-            while (font.getSize() > 8 && metrics.stringWidth(label) > area.width - 24) {
-                font = font.deriveFont((float) font.getSize() - 1.0f);
-                metrics = layer.getFontMetrics(font);
-            }
-            layer.setFont(font);
-            int width = Math.min(area.width - 12, metrics.stringWidth(label) + 12);
-            int x = area.x + 6;
-            int y = area.y + 6;
-            layer.setColor(new Color(10, 18, 23, 185));
-            layer.fillRoundRect(x, y, width, 18, 8, 8);
-            layer.setColor(new Color(223, 237, 240));
-            layer.drawString(label, x + 6, y + 13);
-        } finally {
-            layer.dispose();
-        }
-    }
-
-    static String offlineSnapshotLabel(InventoryRenderMetadata metadata) {
-        String time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-            .withZone(ZoneId.systemDefault()).format(metadata.getCapturedAt());
-        return "Offline Snapshot · " + time;
     }
 
     private static void drawPlayerPreview(
