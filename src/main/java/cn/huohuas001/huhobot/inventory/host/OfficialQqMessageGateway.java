@@ -10,7 +10,6 @@ import io.github.kloping.qqbot.http.data.V2MsgData;
 import io.github.kloping.qqbot.http.data.V2Result;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +22,9 @@ final class OfficialQqMessageGateway implements MessageGateway {
     @Override
     public CompletionStage<SendResult> replyText(MessageReference reference, String text) {
         if (reference == null || isBlank(text)) return invalid("Reply reference and text are required");
-        return attempt(() -> QClient.INSTANCE.replyText(
+        return attempt(() -> !isBlank(QClient.INSTANCE.replyText(
             reference.getGroupOpenId(), reference.getMessageId(), reference.getMessageSequence(), text
-        ));
+        )));
     }
 
     @Override
@@ -68,17 +67,7 @@ final class OfficialQqMessageGateway implements MessageGateway {
     }
 
     private static boolean sendTextCompatible(String groupOpenId, String text) throws Exception {
-        try {
-            Method mainline = QClient.class.getMethod("sendText", String.class, String.class);
-            Object value = mainline.invoke(QClient.INSTANCE, groupOpenId, text);
-            return !(value instanceof Boolean) || ((Boolean) value).booleanValue();
-        } catch (NoSuchMethodException ignored) {
-            // AGENT renamed the one-group proactive send method and returns Unit/void.
-            if (starter() == null) return false;
-            Method agent = QClient.class.getMethod("sendTextToGroup", String.class, String.class);
-            agent.invoke(QClient.INSTANCE, groupOpenId, text);
-            return true;
-        }
+        return QClient.INSTANCE.sendText(groupOpenId, text);
     }
 
     private static boolean sendImageInternal(

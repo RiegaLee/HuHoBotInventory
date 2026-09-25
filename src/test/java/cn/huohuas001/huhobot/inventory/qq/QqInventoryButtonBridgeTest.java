@@ -1,15 +1,6 @@
 package cn.huohuas001.huhobot.inventory.qq;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import io.github.kloping.qqbot.entities.ex.Keyboard;
 import io.github.kloping.qqbot.http.data.V2MsgData;
@@ -80,102 +71,4 @@ class QqInventoryButtonBridgeTest {
         assertNull(InventoryButtonResult.DUPLICATE.getFeedbackMessage());
     }
 
-    @Test
-    void sendsInteractionAcknowledgementAsPut() throws Exception {
-        try (ServerSocket server = new ServerSocket(0)) {
-            CompletableFuture<CapturedRequest> captured = CompletableFuture.supplyAsync(() -> {
-                try (Socket socket = server.accept()) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream(), StandardCharsets.UTF_8
-                    ));
-                    String requestLine = reader.readLine();
-                    int contentLength = 0;
-                    String authorization = null;
-                    String line;
-                    while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                        int separator = line.indexOf(':');
-                        if (separator <= 0) continue;
-                        String name = line.substring(0, separator).trim();
-                        String value = line.substring(separator + 1).trim();
-                        if ("Content-Length".equalsIgnoreCase(name)) contentLength = Integer.parseInt(value);
-                        if ("Authorization".equalsIgnoreCase(name)) authorization = value;
-                    }
-                    char[] body = new char[contentLength];
-                    int offset = 0;
-                    while (offset < contentLength) {
-                        int count = reader.read(body, offset, contentLength - offset);
-                        if (count < 0) break;
-                        offset += count;
-                    }
-                    byte[] response = "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n{}"
-                        .getBytes(StandardCharsets.US_ASCII);
-                    OutputStream output = socket.getOutputStream();
-                    output.write(response);
-                    output.flush();
-                    return new CapturedRequest(requestLine, authorization, new String(body, 0, offset));
-                } catch (Exception error) {
-                    throw new RuntimeException(error);
-                }
-            });
-
-            QqInventoryButtonBridge.putInteractionAcknowledgement(
-                "http://127.0.0.1:" + server.getLocalPort(),
-                Collections.singletonMap("Authorization", "QQBot test-token"),
-                "interaction-123",
-                3
-            );
-
-            CapturedRequest request = captured.get(5, TimeUnit.SECONDS);
-            assertEquals("PUT /interactions/interaction-123 HTTP/1.1", request.requestLine);
-            assertEquals("QQBot test-token", request.authorization);
-            assertEquals("{\"code\":3}", request.body);
-        }
-    }
-
-    @Test
-    void recallsGroupButtonMessageWithEncodedDeletePath() throws Exception {
-        try (ServerSocket server = new ServerSocket(0)) {
-            CompletableFuture<String> captured = CompletableFuture.supplyAsync(() -> {
-                try (Socket socket = server.accept()) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        socket.getInputStream(), StandardCharsets.UTF_8
-                    ));
-                    String requestLine = reader.readLine();
-                    while (!reader.readLine().isEmpty()) { }
-                    socket.getOutputStream().write(
-                        "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n{}"
-                            .getBytes(StandardCharsets.US_ASCII)
-                    );
-                    socket.getOutputStream().flush();
-                    return requestLine;
-                } catch (Exception error) {
-                    throw new RuntimeException(error);
-                }
-            });
-
-            QqInventoryButtonBridge.deleteGroupMessage(
-                "http://127.0.0.1:" + server.getLocalPort(),
-                Collections.singletonMap("Authorization", "QQBot test-token"),
-                "group id",
-                "message/id"
-            );
-
-            assertEquals(
-                "DELETE /v2/groups/group%20id/messages/message%2Fid HTTP/1.1",
-                captured.get(5, TimeUnit.SECONDS)
-            );
-        }
-    }
-
-    private static final class CapturedRequest {
-        private final String requestLine;
-        private final String authorization;
-        private final String body;
-
-        private CapturedRequest(String requestLine, String authorization, String body) {
-            this.requestLine = requestLine;
-            this.authorization = authorization;
-            this.body = body;
-        }
-    }
 }

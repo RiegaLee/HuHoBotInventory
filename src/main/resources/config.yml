@@ -41,7 +41,7 @@ ender-chest:
   optional-caption: "Ender Chest: %player%"
 
 binding:
-  # Compatibility only: existing PenguinAgent name bindings have not yet proved account ownership.
+  # Compatibility only: imported legacy name bindings have not yet proved account ownership.
   allow-legacy-unverified: true
 
 offline-inventory:

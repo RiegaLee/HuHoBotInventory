@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.22.1"
+version = "1.23.0"
 
 val bundledAssetPackId = "inventory-assets-v14-mb7-pv13-faithful-special-heads"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"
@@ -40,17 +40,12 @@ fun dependencyJar(propertyName: String, environmentName: String, candidates: Lis
 val huhobotApiJar = dependencyJar(
     "huhobotApiJar",
     "HUHOBOT_API_JAR",
-    listOf(file("../PenguinClient-Main/PenguinClient-AddonAPI-compat/huhobot-api/build/libs/huhobot-api-1.2.1.jar"))
+    listOf(file("../PenguinClient-AddonAPI-compat/huhobot-api/build/libs/huhobot-api-1.2.1.jar"))
 )
 val huhobotQqSdkJar = dependencyJar(
     "huhobotQqSdkJar",
     "HUHOBOT_QQ_SDK_JAR",
-    listOf(
-        file("../PenguinAgent-AGENT/HuHoBot-v1.3.0-stable-source/common/Bot/build/libs/common-Bot-1.3.0.jar"),
-        file("../PenguinClient-Main/PenguinClient-latest/common/Bot/build/libs/common-Bot-1.4.0.jar"),
-        file("../PenguinAgent-AGENT/PenguinAgent-1.2.2/common/Bot/build/libs/common-Bot-1.2.2.jar"),
-        file("../PenguinClient-Main/PenguinClient-1.2.1/common/Bot/build/libs/common-Bot-1.2.1.jar")
-    )
+    listOf(file("../PenguinClient-Main/common/Bot/build/libs/common-Bot-1.5.0.jar"))
 )
 
 dependencies {

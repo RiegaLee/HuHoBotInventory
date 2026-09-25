@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.23.0 — 2026-09-22
+
+- 支持 HuHoBot-Penguin 官方主分支 `bf95dd6` 与 Common `1.5.0` 的最新 QQ 事件字段和文本回复返回值。
+- 按钮回执与消息撤回改为直接调用主分支正式接口，移除旧 SDK 的自行拼接 HTTP 兼容实现。
+- Addon 支持范围收紧为官方主分支的 Spigot/Paper 路线，移除 PenguinAgent 单账号绑定回退和相关适配。
+- 默认本地依赖路径同步到 `PenguinClient-Main` 与独立的 `PenguinClient-AddonAPI-compat` 目录。
+
 ## 1.22.1 — 2026-09-20
 
 - 默认玩家预览不再使用程序拼接的近似 Steve，改为打包并校验 Minecraft 26.1.2 客户端中的原版 64×64 Steve 皮肤。

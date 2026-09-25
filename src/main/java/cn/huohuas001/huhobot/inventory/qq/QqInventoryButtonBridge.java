@@ -5,7 +5,6 @@ import cn.huohuas001.huhobot.api.MessageReference;
 import cn.huohuas001.huhobot.api.Registration;
 import cn.huohuas001.huhobot.api.Registrations;
 import cn.huohuas001.huhobot.api.SendResult;
-import io.github.kloping.qqbot.Start0;
 import io.github.kloping.qqbot.Starter;
 import io.github.kloping.qqbot.api.event.InterActionEvent;
 import io.github.kloping.qqbot.entities.ex.Keyboard;
@@ -17,17 +16,9 @@ import io.github.kloping.qqbot.http.data.V2Result;
 import io.github.kloping.qqbot.impl.ListenerHost;
 import io.github.kloping.qqbot.impl.ListenerHost.EventReceiver;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -153,7 +144,7 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
     private void onInteraction(InterActionEvent event) {
         InterAction raw = event.getInterAction();
         if (raw == null || !Integer.valueOf(11).equals(raw.getType()) ||
-            !Integer.valueOf(1).equals(raw.getChat_type()) || raw.getData() == null ||
+            !Integer.valueOf(1).equals(raw.getChatType()) || raw.getData() == null ||
             raw.getData().getResolved() == null) return;
         String data = raw.getData().getResolved().getButton_data();
         if (data == null) return;
@@ -169,7 +160,7 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
         InventoryButtonResult result;
         try {
             result = handler.handle(new InventoryButtonInteraction(
-                raw.getId(), raw.getGroup_openid(), raw.getGroup_member_openid(), data
+                raw.getId(), raw.getGroupOpenid(), raw.getGroupMemberOpenid(), data
             ));
             if (result == null || result == InventoryButtonResult.NOT_HANDLED) result = InventoryButtonResult.FAILED;
         } catch (Throwable error) {
@@ -178,7 +169,7 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
         }
         ButtonMessage buttonMessage = buttonMessagesByData.get(data);
         if (buttonMessage != null &&
-            buttonMessage.allowedUserOpenIds.contains(raw.getGroup_member_openid()) &&
+            buttonMessage.allowedUserOpenIds.contains(raw.getGroupMemberOpenid()) &&
             result != InventoryButtonResult.FORBIDDEN) {
             queueRecall(buttonMessage);
         }
@@ -190,30 +181,8 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
     }
 
     private void acknowledgeInteraction(String interactionId, int code) throws IOException {
-        Starter connected = starter;
-        if (connected == null) throw new IOException("HuHoBot QQ client is not connected");
-        Start0 start = authenticationContext(connected);
-        if (start == null) throw new IOException("HuHoBot QQ authentication context is unavailable");
-        putInteractionAcknowledgement(
-            connected.net,
-            new HashMap<String, String>(start.getHeaders()),
-            interactionId,
-            code
-        );
-    }
-
-    private static Start0 authenticationContext(Starter connected) throws IOException {
-        try {
-            Field field = Starter.class.getDeclaredField("contextManager");
-            field.setAccessible(true);
-            Object context = field.get(connected);
-            if (context == null) return null;
-            Object value = context.getClass()
-                .getMethod("getContextEntity", Class.class)
-                .invoke(context, Start0.class);
-            return value instanceof Start0 ? (Start0) value : null;
-        } catch (ReflectiveOperationException error) {
-            throw new IOException("Could not read HuHoBot QQ authentication context", error);
+        if (!QClient.INSTANCE.respondInteraction(interactionId, code)) {
+            throw new IOException("HuHoBot rejected the QQ interaction acknowledgement");
         }
     }
 
@@ -256,17 +225,10 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
 
     private void recall(ButtonMessage message) {
         if (closed.get()) return;
-        Starter connected = ensureConnected();
-        if (connected == null) return;
         try {
-            Start0 start = authenticationContext(connected);
-            if (start == null) throw new IOException("HuHoBot QQ authentication context is unavailable");
-            deleteGroupMessage(
-                connected.net,
-                new HashMap<String, String>(start.getHeaders()),
-                message.groupOpenId,
-                message.messageId
-            );
+            if (!QClient.INSTANCE.recallMessage(message.groupOpenId, message.messageId)) {
+                throw new IOException("HuHoBot rejected the QQ message recall");
+            }
         } catch (Throwable error) {
             if (!closed.get()) {
                 logger.log(Level.WARNING, "Inventory 撤回已结束的 QQ 按钮消息失败：" + concise(error));
@@ -274,121 +236,8 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
         }
     }
 
-    static void deleteGroupMessage(
-        String baseUrl,
-        Map<String, String> headers,
-        String groupOpenId,
-        String messageId
-    ) throws IOException {
-        if (baseUrl == null || baseUrl.trim().isEmpty()) throw new IOException("QQ API base URL is blank");
-        String normalizedBase = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        URL target = new URL(normalizedBase + recallPath(groupOpenId, messageId));
-        HttpURLConnection connection = (HttpURLConnection) target.openConnection();
-        try {
-            connection.setRequestMethod("DELETE");
-            connection.setConnectTimeout(3000);
-            connection.setReadTimeout(3000);
-            connection.setInstanceFollowRedirects(false);
-            connection.setUseCaches(false);
-            if (headers != null) {
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    if (entry.getKey() != null && entry.getValue() != null) {
-                        connection.setRequestProperty(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-            connection.setRequestProperty("Accept", "application/json");
-            int status = connection.getResponseCode();
-            String responseBody = readResponseBody(connection, status);
-            if (status < 200 || status >= 300) {
-                throw new IOException(
-                    "QQ message recall returned HTTP " + status +
-                        (responseBody.isEmpty() ? "" : ": " + responseBody)
-                );
-            }
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    static String recallPath(String groupOpenId, String messageId) throws IOException {
-        return "v2/groups/" + encodePath(groupOpenId) + "/messages/" + encodePath(messageId);
-    }
-
-    private static String encodePath(String value) throws IOException {
-        if (value == null || value.trim().isEmpty()) throw new IOException("QQ message identity is blank");
-        return URLEncoder.encode(value, "UTF-8").replace("+", "%20");
-    }
-
     private static String ownerKey(String groupOpenId, String userOpenId) {
         return groupOpenId + "\n" + userOpenId;
-    }
-
-    /**
-     * Sends the callback response without SpringTool 0.6.4's HTTP proxy. That proxy only applies
-     * POST explicitly and silently turns annotated PUT requests into GET, which QQ rejects as 405.
-     */
-    static void putInteractionAcknowledgement(
-        String baseUrl,
-        Map<String, String> headers,
-        String interactionId,
-        int code
-    ) throws IOException {
-        if (baseUrl == null || baseUrl.trim().isEmpty()) throw new IOException("QQ API base URL is blank");
-        if (interactionId == null || interactionId.trim().isEmpty()) {
-            throw new IOException("QQ interaction id is blank");
-        }
-        String normalizedBase = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-        String encodedId = URLEncoder.encode(interactionId, "UTF-8").replace("+", "%20");
-        URL target = new URL(normalizedBase + "interactions/" + encodedId);
-        byte[] body = ("{\"code\":" + code + "}").getBytes(StandardCharsets.UTF_8);
-        HttpURLConnection connection = (HttpURLConnection) target.openConnection();
-        try {
-            connection.setRequestMethod("PUT");
-            connection.setConnectTimeout(3000);
-            connection.setReadTimeout(3000);
-            connection.setDoOutput(true);
-            connection.setUseCaches(false);
-            if (headers != null) {
-                for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    if (entry.getKey() != null && entry.getValue() != null) {
-                        connection.setRequestProperty(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            connection.setRequestProperty("Accept", "application/json");
-            connection.setFixedLengthStreamingMode(body.length);
-            try (OutputStream output = connection.getOutputStream()) {
-                output.write(body);
-            }
-            int status = connection.getResponseCode();
-            String responseBody = readResponseBody(connection, status);
-            if (status < 200 || status >= 300) {
-                throw new IOException(
-                    "QQ interaction ACK returned HTTP " + status +
-                        (responseBody.isEmpty() ? "" : ": " + responseBody)
-                );
-            }
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private static String readResponseBody(HttpURLConnection connection, int status) throws IOException {
-        InputStream input = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
-        if (input == null) return "";
-        try (InputStream stream = input; ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[512];
-            int remaining = 4096;
-            while (remaining > 0) {
-                int count = stream.read(buffer, 0, Math.min(buffer.length, remaining));
-                if (count < 0) break;
-                output.write(buffer, 0, count);
-                remaining -= count;
-            }
-            return new String(output.toByteArray(), StandardCharsets.UTF_8).trim();
-        }
     }
 
     static Keyboard keyboard(List<InventoryButton> buttons) {

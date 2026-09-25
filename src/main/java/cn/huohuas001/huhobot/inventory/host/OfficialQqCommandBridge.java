@@ -11,7 +11,7 @@ import io.github.kloping.qqbot.api.v2.GroupMessageEvent;
 import io.github.kloping.qqbot.entities.qqpd.User;
 import io.github.kloping.qqbot.entities.qqpd.message.MessageAttachment;
 import io.github.kloping.qqbot.entities.qqpd.message.RawMessage;
-import io.github.kloping.qqbot.entities.qqpd.v2.Contact;
+import io.github.kloping.qqbot.entities.qqpd.v2.Member;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-/** Registers Inventory/API commands into the unmodified Mainline or AGENT QClient. */
+/** Registers Inventory/API commands into the unmodified official Mainline QClient. */
 final class OfficialQqCommandBridge implements AutoCloseable {
-    static final String AGENT_ADDON_DESCRIPTION = "为 HuHoBot 提供 Minecraft 背包与末影箱图片查询";
-    static final String AGENT_ADDON_AUTHOR = "RiegaLee";
+    static final String ADDON_DESCRIPTION = "为 HuHoBot 提供 Minecraft 背包与末影箱图片查询";
+    static final String ADDON_AUTHOR = "RiegaLee";
 
     private final JavaPlugin plugin;
     private final EmbeddedHuHoBotService service;
@@ -68,7 +68,7 @@ final class OfficialQqCommandBridge implements AutoCloseable {
                 logWaitingOnce();
                 return false;
             }
-            if (!tryRegisterAsAgentAddon()) QClient.INSTANCE.registerCommand(commands);
+            if (!tryRegisterAsAddon()) QClient.INSTANCE.registerCommand(commands);
             registered = true;
             plugin.getLogger().info(
                 "Inventory 已接入官方 HuHoBot QQ 指令分发（内置兼容宿主，无第三方桥接 JAR）"
@@ -86,7 +86,7 @@ final class OfficialQqCommandBridge implements AutoCloseable {
         }
     }
 
-    private boolean tryRegisterAsAgentAddon() throws Exception {
+    private boolean tryRegisterAsAddon() throws Exception {
         ClassLoader loader = QClient.class.getClassLoader();
         Class<?> addonClass;
         try {
@@ -101,12 +101,12 @@ final class OfficialQqCommandBridge implements AutoCloseable {
             Object metadata = constructor.newInstance(
                 "HuHoBotInventory",
                 plugin.getDescription().getVersion(),
-                AGENT_ADDON_DESCRIPTION,
-                AGENT_ADDON_AUTHOR
+                ADDON_DESCRIPTION,
+                ADDON_AUTHOR
             );
             Method register = QClient.class.getMethod("registerCommand", addonClass, BaseCommand.class);
             register.invoke(QClient.INSTANCE, metadata, commands);
-            plugin.getLogger().info("Inventory 已登记到 AGENT AddonManager");
+            plugin.getLogger().info("Inventory 已登记到主分支 AddonManager");
             return true;
         } catch (NoSuchMethodException ignored) {
             return false;
@@ -211,7 +211,7 @@ final class OfficialQqCommandBridge implements AutoCloseable {
 
         private static BotMessage snapshot(GroupMessageEvent event) {
             RawMessage raw = event.getRawMessage();
-            Contact sender = event.getSender();
+            Member sender = event.getSender();
             String groupOpenId = groupOpenId(event);
             List<MentionSnapshot> mentions = new ArrayList<MentionSnapshot>();
             User[] rawMentions = raw == null ? null : raw.getMentions();
@@ -241,7 +241,7 @@ final class OfficialQqCommandBridge implements AutoCloseable {
                     sender == null ? null : sender.getId(),
                     sender == null ? null : sender.getOpenid(),
                     sender == null ? "unknown" : text(sender.getUsername(), "unknown"),
-                    sender == null ? null : sender.getRole()
+                    sender == null ? null : sender.getMemberRole()
                 ),
                 raw == null ? "" : text(raw.getContent(), ""),
                 raw == null ? "" : text(raw.toString0(), ""),

@@ -4,7 +4,7 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 - 作者：`RiegaLee`
 - 插件标识：`HuHoBotInventory`
-- 当前版本：`1.22.1`
+- 当前版本：`1.23.0`
 - 状态：`FULL PASS`
 
 正式构建请从仓库的 [Releases](../../releases) 页面下载，不要从第三方来源下载来历不明的 JAR。
@@ -17,34 +17,32 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 - 服务器完整重启且玩家保持离线后，仍可读取此前保存的快照。
 - 与 GameAuthCode 双账号绑定兼容，使用上下排列的 QQ 按钮选择查询账号。
 - 按钮限制发起用户、60 秒有效且只能消费一次；点击、新一轮选择或超时后会撤回原按钮消息。
-- HuHoBot-Penguin AGENT 分支未安装外部绑定权威时，可读取其内置单账号绑定；旧绑定只允许在线本人查询，不冒充已验证离线身份。
 - 内置 Faithful 32x 默认主题与非官方 CozyUI+ 兼容主题。
 - 混合分辨率物品图标、PV13 高精度 3D 人物/盔甲渲染，以及 Faithful 时钟、指南针和独立生物头颅贴图。
 - 玩家头颅按物品中保存的 Mojang 皮肤单独渲染并缓存；无皮肤数据时才使用通用 Faithful Steve 头颅。
 - 可选使用 SkinsRestorer 获取玩家当前皮肤。
-- 内置兼容宿主与 HuHoBot API，不需要修改 HuHoBot-Penguin 主分支或 HuHoBot-Penguin AGENT 分支主体。
+- 内置兼容宿主与 HuHoBot API，不需要修改 HuHoBot-Penguin 主分支主体。
 
 ## 已验证环境
 
-- [HuHoBot-Penguin 主分支（PenguinClient）](https://github.com/HuHoBot/PenguinClient) `1.2.2`
-- [HuHoBot-Penguin AGENT 分支（PenguinAgent）](https://github.com/HuHoBot/PenguinAgent) `1.6.1`
-- HuHoBot GameAuthCode `1.5.0`
+- [HuHoBot-Penguin 主分支（PenguinClient）](https://github.com/HuHoBot/PenguinClient) `bf95dd6`（Common `1.5.0`）
+- HuHoBot GameAuthCode `1.7.0`
 - Minecraft/Paper `1.21.11`
 - SkinsRestorer `15.x`（可选）
 - Addon 字节码兼容 Java 8；实际 Java 版本仍须满足所用服务端要求
 
-同一个 Inventory JAR 已在 HuHoBot-Penguin 主分支与 HuHoBot-Penguin AGENT 分支完成真实 QQ 验收。
+Inventory 仅面向 HuHoBot-Penguin 官方主分支的 Spigot/Paper 路线；不再适配 PenguinAgent。
 
 ## 安装
 
 ### 快速安装
 
-安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 主分支或 AGENT 分支。
+安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 官方主分支。
 
-1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.22.1.jar`。
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.23.0.jar`。
 2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
 3. 重启服务器。
-4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.22.1`，就表示安装成功。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.23.0`，就表示安装成功。
 
 首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 
@@ -53,7 +51,6 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 | 使用的 HuHoBot 版本 | 建议安装 |
 | --- | --- |
 | HuHoBot-Penguin 主分支 | Inventory、[AuthMeReloaded](https://github.com/AuthMe/AuthMeReloaded)、[GameAuthCode](https://github.com/RiegaLee/HuHoBotGameAuthCode) |
-| HuHoBot-Penguin AGENT 分支 | 只安装 Inventory 即可使用内置单账号绑定；需要双账号或离线查询时，再安装 AuthMe 和 GameAuthCode |
 
 Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，GameAuthCode 用来把经过验证的 Minecraft 账号绑定到 QQ。
 
@@ -65,8 +62,6 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 2. 在游戏内输入 `/authcode`，获取六位验证码。
 3. 回到 QQ 群发送 `/绑定 <验证码>`。
 4. 机器人提示绑定成功后，即可查询背包。绑定第二个账号时，用另一个游戏账号重复以上步骤。
-
-使用 AGENT 分支内置绑定的服主，可以继续使用原有绑定方式；这种绑定默认支持玩家在线时查询。
 
 ### 开始查询
 
@@ -81,7 +76,7 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 
 玩家至少需要成功登录服务器一次，Inventory 才能保存背包和末影箱快照。快照会在玩家退出、服务器正常关闭或定时保存时更新。
 
-如果机器人提示“未经游戏内验证”或“暂时没有离线快照”，请让玩家完成 GameAuthCode 绑定并登录服务器一次。AGENT 分支原有的旧式绑定默认只能查询在线玩家。
+如果机器人提示“未经游戏内验证”或“暂时没有离线快照”，请让玩家完成 GameAuthCode 绑定并登录服务器一次。
 
 ### 可选：显示玩家皮肤
 

@@ -39,7 +39,7 @@ public final class EmbeddedHuHoBotHost implements AutoCloseable {
             return new EmbeddedHuHoBotHost(plugin, existing.getProvider(), null, null);
         }
 
-        DynamicBindingServices bindings = new DynamicBindingServices(services, plugin.getLogger());
+        DynamicBindingServices bindings = new DynamicBindingServices(services);
         EmbeddedHuHoBotService service = new EmbeddedHuHoBotService(
             plugin, new OfficialQqMessageGateway(), bindings, bindings
         );
