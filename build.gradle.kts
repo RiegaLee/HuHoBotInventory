@@ -342,6 +342,13 @@ val verifyAddonJar by tasks.registering {
             }) {
                 "Addon JAR contains development/private material outside the managed runtime pack"
             }
+            val mainPluginBytecode = zip.getInputStream(
+                zip.getEntry("cn/huohuas001/huhobot/inventory/MinecraftInventoryPlugin.class")
+                    ?: error("Addon JAR is missing MinecraftInventoryPlugin.class")
+            ).use { it.readBytes() }.toString(Charsets.ISO_8859_1)
+            check(!mainPluginBytecode.contains("PaperOfflineInventoryDataSource")) {
+                "Main plugin must not eagerly link the version-specific Paper playerdata adapter"
+            }
         }
     }
 }

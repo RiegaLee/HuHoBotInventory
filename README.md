@@ -2,7 +2,7 @@
 
 让群友在 QQ 群里直接查看自己 Minecraft 账号的背包和末影箱。
 
-玩家完成绑定后，只要发送 `/我的背包` 或 `/我的末影箱`，机器人就会回复一张图片。玩家不在线时，插件会直接读取 Paper 保存的玩家数据；读取失败时再使用插件自己的最近快照。
+玩家完成绑定后，只要发送 `/我的背包` 或 `/我的末影箱`，机器人就会回复一张图片。玩家不在线时，匹配的 Paper 版本会优先读取原版玩家数据；其他平台或读取失败时使用插件自己的最近快照。
 
 ![默认背包效果](docs/images/inventory-preview.png)
 
@@ -19,7 +19,7 @@
 
 ## 使用前需要什么
 
-- Paper 1.21.11 服务端。
+- Spigot 或 Paper 1.21.11 服务端。Paper 1.21.11 可以直接只读查询原版 playerdata；其他 Bukkit 实现会使用插件保存的 YAML 快照。
 - [HuHoBot-Penguin 1.3.0](https://github.com/HuHoBot/PenguinClient) 的 **Spigot / Paper 版**，JAR 文件名为 `HuHoBot-Penguin_Spigot-1.3.0.jar`。
 - [GameAuthCode](https://github.com/RiegaLee/HuHoBotGameAuthCode)，用于把 QQ 和游戏账号绑定起来。
 - AuthMeReloaded，用于确认绑定的是玩家本人。
@@ -80,11 +80,11 @@ plugins/HuHoBotInventory/config.yml
 
 ## 离线查询是怎么工作的
 
-查询离线玩家时，插件首先以只读方式读取服务器当前世界的 `playerdata/<UUID>.dat`。它只读取与绑定 UUID 完全对应的文件，不会写回、替换或删除玩家存档。
+在匹配的 Paper 1.21.11 上查询离线玩家时，插件首先以只读方式读取服务器当前世界的 `playerdata/<UUID>.dat`。它只读取与绑定 UUID 完全对应的文件，不会写回、替换或删除玩家存档。
 
 为了避免在玩家上线或存档正被改写时读到不一致的数据，插件会在读取前后检查玩家在线状态、文件大小和修改时间。检测到状态变化时，本次查询会中止，让用户重新查询。
 
-插件仍会保留自己的 YAML 快照作为兜底。快照会在这些时候更新：
+原版存档读取器是一个按平台和游戏版本延迟加载的适配器，不会在不匹配的服务端上加载 Paper 内部类。Spigot 或暂未适配的版本会直接使用 YAML 快照。快照会在这些时候更新：
 
 - 玩家退出服务器时；
 - 插件定时保存时；

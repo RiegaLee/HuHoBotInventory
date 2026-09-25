@@ -14,7 +14,7 @@ import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineInventoryDataSourc
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineEnderChestDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
-import cn.huohuas001.huhobot.inventory.datasource.PaperOfflineInventoryDataSource;
+import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSourceFactory;
 import cn.huohuas001.huhobot.inventory.datasource.SkinsRestorerHeadTextureResolver;
 import cn.huohuas001.huhobot.inventory.head.PlayerHeadIconCache;
 import cn.huohuas001.huhobot.inventory.renderer.Java2DInventoryRenderer;
@@ -187,13 +187,18 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                         " (periodic save " + config.getOfflinePeriodicSaveSeconds() + "s)"
                 );
                 if (getConfig().getBoolean("offline-inventory.direct-playerdata", true)) {
-                    offlinePlayerDataSource = new PaperOfflineInventoryDataSource(
-                        this, config.getOnlineSourceServer(),
-                        PaperOfflineInventoryDataSource.Kind.INVENTORY
-                    );
-                    getLogger().info(
-                        "Read-only Paper playerdata inventory lookup enabled; YAML snapshots are fallback only"
-                    );
+                    offlinePlayerDataSource = OfflineInventoryDataSourceFactory.create(
+                        this, config.getOnlineSourceServer(), OfflineInventoryDataSource.Kind.INVENTORY
+                    ).orElse(null);
+                    if (offlinePlayerDataSource != null) {
+                        getLogger().info(
+                            "Read-only Paper playerdata inventory lookup enabled; YAML snapshots are fallback only"
+                        );
+                    } else {
+                        getLogger().info(
+                            "No matching direct playerdata inventory adapter; using YAML snapshots"
+                        );
+                    }
                 }
             }
 
@@ -213,13 +218,18 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                         " (periodic save " + config.getOfflineEnderChestPeriodicSaveSeconds() + "s)"
                 );
                 if (getConfig().getBoolean("offline-ender-chest.direct-playerdata", true)) {
-                    offlineEnderChestPlayerDataSource = new PaperOfflineInventoryDataSource(
-                        this, config.getEnderChestSourceServer(),
-                        PaperOfflineInventoryDataSource.Kind.ENDER_CHEST
-                    );
-                    getLogger().info(
-                        "Read-only Paper playerdata Ender Chest lookup enabled; YAML snapshots are fallback only"
-                    );
+                    offlineEnderChestPlayerDataSource = OfflineInventoryDataSourceFactory.create(
+                        this, config.getEnderChestSourceServer(), OfflineInventoryDataSource.Kind.ENDER_CHEST
+                    ).orElse(null);
+                    if (offlineEnderChestPlayerDataSource != null) {
+                        getLogger().info(
+                            "Read-only Paper playerdata Ender Chest lookup enabled; YAML snapshots are fallback only"
+                        );
+                    } else {
+                        getLogger().info(
+                            "No matching direct playerdata Ender Chest adapter; using YAML snapshots"
+                        );
+                    }
                 }
             }
 

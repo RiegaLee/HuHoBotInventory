@@ -66,7 +66,7 @@ class PaperOfflineInventoryDataSourceTest {
                 ender
             );
         PaperOfflineInventoryDataSource source = source(
-            PaperOfflineInventoryDataSource.Kind.INVENTORY, loaded
+            OfflineInventoryDataSource.Kind.INVENTORY, loaded
         );
 
         InventorySnapshot snapshot = source.getInventory(PLAYER, "Steve")
@@ -91,7 +91,7 @@ class PaperOfflineInventoryDataSourceTest {
                 SAVED_AT, inventory, null, null, null, null, null, ender
             );
         PaperOfflineInventoryDataSource source = source(
-            PaperOfflineInventoryDataSource.Kind.ENDER_CHEST, loaded
+            OfflineInventoryDataSource.Kind.ENDER_CHEST, loaded
         );
 
         InventorySnapshot snapshot = source.getInventory(PLAYER, "Steve")
@@ -102,7 +102,7 @@ class PaperOfflineInventoryDataSourceTest {
 
         PaperOfflineInventoryDataSource online = new PaperOfflineInventoryDataSource(
             new FakeAccess(loaded, true), new BukkitItemSnapshotMapper(), "paper-test",
-            PaperOfflineInventoryDataSource.Kind.INVENTORY
+            OfflineInventoryDataSource.Kind.INVENTORY
         );
         CompletionException failure = assertThrows(
             CompletionException.class,
@@ -115,7 +115,7 @@ class PaperOfflineInventoryDataSourceTest {
     }
 
     private static PaperOfflineInventoryDataSource source(
-        PaperOfflineInventoryDataSource.Kind kind,
+        OfflineInventoryDataSource.Kind kind,
         PaperOfflineInventoryDataSource.LoadedPlayerData loaded
     ) {
         return new PaperOfflineInventoryDataSource(

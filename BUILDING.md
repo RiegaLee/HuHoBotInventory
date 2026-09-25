@@ -11,7 +11,7 @@
 
 复制 `gradle.properties.example` 为 `gradle.properties`，并把其中的路径改为本机实际文件位置。`gradle.properties` 是本地配置，不会被 Git 提交。
 
-构建脚本使用 Paperweight Userdev 获取 Paper 1.21.11 的服务端映射。首次构建需要联网下载开发包，之后可复用 Gradle 缓存。离线 playerdata 读取代码使用 Paper 1.21.11 的服务端接口，因此升级 Paper 大版本时必须重新编译并复测。
+构建脚本使用 Paperweight Userdev 获取 Paper 1.21.11 的服务端映射。首次构建需要联网下载开发包，之后可复用 Gradle 缓存。Paper 离线 playerdata 读取器按平台和游戏版本延迟加载，通用启动代码不直接链接其 NMS 类；升级 Paper 大版本时，需要增加对应适配器并重新编译、复测。
 
 ## 2. 构建离线素材工具
 

@@ -8,5 +8,7 @@ import java.util.concurrent.CompletionStage;
 
 /** Read-only source for the last player state persisted by the Minecraft server. */
 public interface OfflineInventoryDataSource {
+    enum Kind { INVENTORY, ENDER_CHEST }
+
     CompletionStage<Optional<InventorySnapshot>> getInventory(UUID playerUuid, String lastKnownName);
 }

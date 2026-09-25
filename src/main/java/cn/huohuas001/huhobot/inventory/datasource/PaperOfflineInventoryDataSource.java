@@ -48,14 +48,17 @@ import java.util.concurrent.CompletionStage;
 public final class PaperOfflineInventoryDataSource implements OfflineInventoryDataSource {
     private static final long MAX_COMPRESSED_PLAYERDATA_BYTES = 16L * 1024L * 1024L;
     private static final long MAX_DECOMPRESSED_PLAYERDATA_BYTES = 64L * 1024L * 1024L;
-    public enum Kind { INVENTORY, ENDER_CHEST }
 
     private final Access access;
     private final BukkitItemSnapshotMapper mapper;
     private final String sourceServer;
-    private final Kind kind;
+    private final OfflineInventoryDataSource.Kind kind;
 
-    public PaperOfflineInventoryDataSource(JavaPlugin plugin, String sourceServer, Kind kind) {
+    public PaperOfflineInventoryDataSource(
+        JavaPlugin plugin,
+        String sourceServer,
+        OfflineInventoryDataSource.Kind kind
+    ) {
         this(new PaperAccess(plugin), new BukkitItemSnapshotMapper(), sourceServer, kind);
     }
 
@@ -63,7 +66,7 @@ public final class PaperOfflineInventoryDataSource implements OfflineInventoryDa
         Access access,
         BukkitItemSnapshotMapper mapper,
         String sourceServer,
-        Kind kind
+        OfflineInventoryDataSource.Kind kind
     ) {
         this.access = Objects.requireNonNull(access, "access");
         this.mapper = Objects.requireNonNull(mapper, "mapper");
@@ -108,7 +111,9 @@ public final class PaperOfflineInventoryDataSource implements OfflineInventoryDa
     }
 
     private InventorySnapshot toSnapshot(UUID playerUuid, String playerName, LoadedPlayerData loaded) {
-        if (kind == Kind.ENDER_CHEST) return enderChestSnapshot(playerUuid, playerName, loaded);
+        if (kind == OfflineInventoryDataSource.Kind.ENDER_CHEST) {
+            return enderChestSnapshot(playerUuid, playerName, loaded);
+        }
 
         ItemStack[] contents = loaded.inventory;
         if (contents == null || contents.length < 36) {

@@ -14,6 +14,7 @@
 - 离线背包与末影箱查询改为优先只读加载 Paper 1.21.11 的原版 `playerdata/<UUID>.dat`；不会写回玩家存档，读取失败时自动回退到现有 YAML 快照。
 - 读取原版存档时校验绑定 UUID、路径、压缩文件大小、读取前后修改时间和玩家在线状态，避免越界读取以及玩家上线或存档改写期间的数据竞争。
 - 配置版本升级到 13，新增 `offline-inventory.direct-playerdata` 与 `offline-ender-chest.direct-playerdata` 开关；构建改用 Paperweight Userdev 提供服务端映射。
+- 原版 playerdata 读取改为 InvSee++ 式的单 JAR 平台适配结构：通用启动代码只依赖数据源接口，Paper 1.21.11 实现经平台与版本检测后延迟加载；Spigot 或不匹配版本安全回退 YAML 快照。
 
 ## 1.23.0 — 2026-09-22
 
