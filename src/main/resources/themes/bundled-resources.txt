@@ -17,6 +17,7 @@ themes/default/SOURCE.txt
 themes/faithful32x/theme.yml
 themes/faithful32x/explicit-overrides.yml
 themes/faithful32x/layout.yml
+themes/faithful32x/default-wallpaper.png
 themes/faithful32x/assets/minecraft/apple.png
 themes/faithful32x/assets/minecraft/arrow.png
 themes/faithful32x/assets/minecraft/bow.png

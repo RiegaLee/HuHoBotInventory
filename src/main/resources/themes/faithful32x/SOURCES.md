@@ -1,5 +1,10 @@
 # Faithful 32x theme sources
 
+`default-wallpaper.png` is original project artwork supplied by RiegaLee for the
+HuHoBot Inventory 1.24.0 desktop-style interface. It is not derived from
+Faithful or CozyUI+ and is used only as the default wallpaper below the
+runtime-rendered slot and player cards.
+
 Extraction date: 2026-08-24
 
 ## Upstream

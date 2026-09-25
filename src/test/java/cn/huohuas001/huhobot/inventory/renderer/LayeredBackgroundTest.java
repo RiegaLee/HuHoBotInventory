@@ -27,6 +27,41 @@ class LayeredBackgroundTest {
     private static final Path THEMES = Paths.get("src", "main", "resources", "themes");
 
     @Test
+    void rendersBundledMistBlueDefaultWallpaper() throws Exception {
+        Path themeDirectory = THEMES.resolve("faithful32x");
+        Theme theme = ThemeLoader.load(themeDirectory);
+        Path wallpaper = themeDirectory.resolve("default-wallpaper.png");
+        BufferedImage inventoryBackground = LayeredBackground.forInventory(
+            theme,
+            wallpaper,
+            "stretch"
+        );
+        Rectangle playerArea = theme.getLayout().getPlayerPreview();
+        BufferedImage player = new PlayerModelRenderer(playerArea.width, playerArea.height)
+            .render(new DefaultPlayerSkinProvider().getFallback());
+        InventorySnapshot snapshot = new MockInventoryDataSource("bundled-wallpaper-test")
+            .createSnapshot("WallpaperUser");
+        RenderResult inventory = new Java2DInventoryRenderer(theme, inventoryBackground)
+            .render(snapshot, player);
+        BufferedImage enderBackground = LayeredBackground.forEnderChest(
+            theme,
+            wallpaper,
+            "cover"
+        );
+        RenderResult ender = new EnderChestRenderer(theme, enderBackground).render(snapshot);
+
+        Path output = Paths.get("build", "rendered-test-output");
+        Files.createDirectories(output);
+        Files.write(output.resolve("default-wallpaper-inventory.png"), inventory.getBytes());
+        Files.write(output.resolve("default-wallpaper-ender-chest.png"), ender.getBytes());
+
+        assertEquals(1359, inventory.getWidth());
+        assertEquals(1017, inventory.getHeight());
+        assertEquals(1620, ender.getWidth());
+        assertEquals(694, ender.getHeight());
+    }
+
+    @Test
     void roundsWallpaperAndMasksOnlyInteractiveCards(@TempDir Path directory) throws Exception {
         Path wallpaperFile = directory.resolve("solid.png");
         BufferedImage solid = new BufferedImage(1600, 900, BufferedImage.TYPE_INT_RGB);

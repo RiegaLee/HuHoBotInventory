@@ -227,13 +227,22 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                         ", ui=mintcat-rounded)"
                 );
             } else {
-                inventoryBackground = LayeredBackground.placeholderInventory(theme);
+                Path defaultWallpaper = themeDirectory.resolve("default-wallpaper.png");
+                inventoryBackground = LayeredBackground.forInventory(
+                    theme,
+                    defaultWallpaper,
+                    "stretch"
+                );
                 if (config.isEnderChestEnabled()) {
-                    enderChestBackground = LayeredBackground.placeholderEnderChest(theme);
+                    enderChestBackground = LayeredBackground.forEnderChest(
+                        theme,
+                        defaultWallpaper,
+                        "cover"
+                    );
                 }
                 getLogger().info(
-                    "Using temporary neutral Inventory wallpaper; configure render.custom-background " +
-                        "to supply a local PNG"
+                    "Using the bundled MintCat mist-blue wallpaper; configure " +
+                        "render.custom-background to supply a local PNG"
                 );
             }
 
