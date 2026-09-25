@@ -28,12 +28,17 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +51,16 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
     private final Logger logger;
     private final Map<String, InventoryButtonHandler> routes =
         new ConcurrentHashMap<String, InventoryButtonHandler>();
+    private final Map<String, ButtonMessage> buttonMessagesByData =
+        new ConcurrentHashMap<String, ButtonMessage>();
+    private final Map<String, ButtonMessage> buttonMessagesByOwner =
+        new ConcurrentHashMap<String, ButtonMessage>();
+    private final ScheduledExecutorService recallExecutor =
+        Executors.newSingleThreadScheduledExecutor(task -> {
+            Thread thread = new Thread(task, "huhobot-inventory-button-recall");
+            thread.setDaemon(true);
+            return thread;
+        });
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private volatile Starter starter;
     private volatile InventoryInteractionListener listener;
@@ -95,6 +110,7 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
                 Channel.SEND_MESSAGE_HEADERS
             );
             if (response != null && response.getId() != null && !response.getId().trim().isEmpty()) {
+                rememberButtonMessage(reference.getGroupOpenId(), response.getId(), buttons);
                 return CompletableFuture.completedFuture(SendResult.success());
             }
             String diagnostic = "QQ did not return a message id for the custom keyboard";
@@ -160,6 +176,12 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
             logger.log(Level.WARNING, "Inventory 按钮回调失败：" + concise(error), error);
             result = InventoryButtonResult.FAILED;
         }
+        ButtonMessage buttonMessage = buttonMessagesByData.get(data);
+        if (buttonMessage != null &&
+            buttonMessage.allowedUserOpenIds.contains(raw.getGroup_member_openid()) &&
+            result != InventoryButtonResult.FORBIDDEN) {
+            queueRecall(buttonMessage);
+        }
         try {
             acknowledgeInteraction(raw.getId(), result.getPlatformCode());
         } catch (Throwable error) {
@@ -193,6 +215,113 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
         } catch (ReflectiveOperationException error) {
             throw new IOException("Could not read HuHoBot QQ authentication context", error);
         }
+    }
+
+    private void rememberButtonMessage(
+        String groupOpenId,
+        String messageId,
+        List<InventoryButton> buttons
+    ) {
+        Set<String> data = new HashSet<String>();
+        Set<String> owners = new HashSet<String>();
+        for (InventoryButton button : buttons) {
+            data.add(button.getData());
+            owners.add(button.getAllowedUserOpenId());
+        }
+        ButtonMessage message = new ButtonMessage(groupOpenId, messageId, data, owners);
+        for (String value : data) buttonMessagesByData.put(value, message);
+        for (String owner : owners) {
+            ButtonMessage previous = buttonMessagesByOwner.put(ownerKey(groupOpenId, owner), message);
+            if (previous != null && previous != message) queueRecall(previous);
+        }
+        recallExecutor.schedule(
+            () -> queueRecall(message),
+            BUTTON_LIFETIME_SECONDS,
+            TimeUnit.SECONDS
+        );
+    }
+
+    private void queueRecall(ButtonMessage message) {
+        if (!message.recallQueued.compareAndSet(false, true)) return;
+        for (String data : message.buttonData) buttonMessagesByData.remove(data, message);
+        for (String owner : message.allowedUserOpenIds) {
+            buttonMessagesByOwner.remove(ownerKey(message.groupOpenId, owner), message);
+        }
+        try {
+            recallExecutor.execute(() -> recall(message));
+        } catch (RuntimeException error) {
+            if (!closed.get()) logger.log(Level.WARNING, "提交 Inventory QQ 按钮消息撤回失败：" + concise(error));
+        }
+    }
+
+    private void recall(ButtonMessage message) {
+        if (closed.get()) return;
+        Starter connected = ensureConnected();
+        if (connected == null) return;
+        try {
+            Start0 start = authenticationContext(connected);
+            if (start == null) throw new IOException("HuHoBot QQ authentication context is unavailable");
+            deleteGroupMessage(
+                connected.net,
+                new HashMap<String, String>(start.getHeaders()),
+                message.groupOpenId,
+                message.messageId
+            );
+        } catch (Throwable error) {
+            if (!closed.get()) {
+                logger.log(Level.WARNING, "Inventory 撤回已结束的 QQ 按钮消息失败：" + concise(error));
+            }
+        }
+    }
+
+    static void deleteGroupMessage(
+        String baseUrl,
+        Map<String, String> headers,
+        String groupOpenId,
+        String messageId
+    ) throws IOException {
+        if (baseUrl == null || baseUrl.trim().isEmpty()) throw new IOException("QQ API base URL is blank");
+        String normalizedBase = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        URL target = new URL(normalizedBase + recallPath(groupOpenId, messageId));
+        HttpURLConnection connection = (HttpURLConnection) target.openConnection();
+        try {
+            connection.setRequestMethod("DELETE");
+            connection.setConnectTimeout(3000);
+            connection.setReadTimeout(3000);
+            connection.setInstanceFollowRedirects(false);
+            connection.setUseCaches(false);
+            if (headers != null) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        connection.setRequestProperty(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+            connection.setRequestProperty("Accept", "application/json");
+            int status = connection.getResponseCode();
+            String responseBody = readResponseBody(connection, status);
+            if (status < 200 || status >= 300) {
+                throw new IOException(
+                    "QQ message recall returned HTTP " + status +
+                        (responseBody.isEmpty() ? "" : ": " + responseBody)
+                );
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    static String recallPath(String groupOpenId, String messageId) throws IOException {
+        return "v2/groups/" + encodePath(groupOpenId) + "/messages/" + encodePath(messageId);
+    }
+
+    private static String encodePath(String value) throws IOException {
+        if (value == null || value.trim().isEmpty()) throw new IOException("QQ message identity is blank");
+        return URLEncoder.encode(value, "UTF-8").replace("+", "%20");
+    }
+
+    private static String ownerKey(String groupOpenId, String userOpenId) {
+        return groupOpenId + "\n" + userOpenId;
     }
 
     /**
@@ -320,6 +449,9 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
     public void close() {
         if (!closed.compareAndSet(false, true)) return;
         routes.clear();
+        buttonMessagesByData.clear();
+        buttonMessagesByOwner.clear();
+        recallExecutor.shutdownNow();
         synchronized (this) {
             try {
                 Starter connected = starter;
@@ -351,4 +483,26 @@ public final class QqInventoryButtonBridge implements InventoryButtonBridge {
         @EventReceiver
         public void onInteraction(InterActionEvent event) { owner.onInteraction(event); }
     }
+
+    private static final class ButtonMessage {
+        final String groupOpenId;
+        final String messageId;
+        final Set<String> buttonData;
+        final Set<String> allowedUserOpenIds;
+        final AtomicBoolean recallQueued = new AtomicBoolean(false);
+
+        ButtonMessage(
+            String groupOpenId,
+            String messageId,
+            Set<String> buttonData,
+            Set<String> allowedUserOpenIds
+        ) {
+            this.groupOpenId = groupOpenId;
+            this.messageId = messageId;
+            this.buttonData = buttonData;
+            this.allowedUserOpenIds = allowedUserOpenIds;
+        }
+    }
+
+    private static final long BUTTON_LIFETIME_SECONDS = 60L;
 }

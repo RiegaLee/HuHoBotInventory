@@ -4,7 +4,7 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 - 作者：`RiegaLee`
 - 插件标识：`HuHoBotInventory`
-- 当前版本：`1.22.0`
+- 当前版本：`1.22.1`
 - 状态：`FULL PASS`
 
 正式构建请从仓库的 [Releases](../../releases) 页面下载，不要从第三方来源下载来历不明的 JAR。
@@ -16,7 +16,7 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 - 在线玩家读取实时背包/末影箱；离线玩家读取持久化快照。
 - 服务器完整重启且玩家保持离线后，仍可读取此前保存的快照。
 - 与 GameAuthCode 双账号绑定兼容，使用上下排列的 QQ 按钮选择查询账号。
-- 按钮限制发起用户、60 秒有效且只能消费一次，并提供准确的过期反馈。
+- 按钮限制发起用户、60 秒有效且只能消费一次；点击、新一轮选择或超时后会撤回原按钮消息。
 - HuHoBot-Penguin AGENT 分支未安装外部绑定权威时，可读取其内置单账号绑定；旧绑定只允许在线本人查询，不冒充已验证离线身份。
 - 内置 Faithful 32x 默认主题与非官方 CozyUI+ 兼容主题。
 - 混合分辨率物品图标、PV13 高精度 3D 人物/盔甲渲染，以及 Faithful 时钟、指南针和独立生物头颅贴图。
@@ -41,10 +41,10 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 主分支或 AGENT 分支。
 
-1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.22.0.jar`。
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.22.1.jar`。
 2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
 3. 重启服务器。
-4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.22.0`，就表示安装成功。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.22.1`，就表示安装成功。
 
 首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 

@@ -132,6 +132,41 @@ class QqInventoryButtonBridgeTest {
         }
     }
 
+    @Test
+    void recallsGroupButtonMessageWithEncodedDeletePath() throws Exception {
+        try (ServerSocket server = new ServerSocket(0)) {
+            CompletableFuture<String> captured = CompletableFuture.supplyAsync(() -> {
+                try (Socket socket = server.accept()) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        socket.getInputStream(), StandardCharsets.UTF_8
+                    ));
+                    String requestLine = reader.readLine();
+                    while (!reader.readLine().isEmpty()) { }
+                    socket.getOutputStream().write(
+                        "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n{}"
+                            .getBytes(StandardCharsets.US_ASCII)
+                    );
+                    socket.getOutputStream().flush();
+                    return requestLine;
+                } catch (Exception error) {
+                    throw new RuntimeException(error);
+                }
+            });
+
+            QqInventoryButtonBridge.deleteGroupMessage(
+                "http://127.0.0.1:" + server.getLocalPort(),
+                Collections.singletonMap("Authorization", "QQBot test-token"),
+                "group id",
+                "message/id"
+            );
+
+            assertEquals(
+                "DELETE /v2/groups/group%20id/messages/message%2Fid HTTP/1.1",
+                captured.get(5, TimeUnit.SECONDS)
+            );
+        }
+    }
+
     private static final class CapturedRequest {
         private final String requestLine;
         private final String authorization;

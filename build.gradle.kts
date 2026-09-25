@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.22.0"
+version = "1.22.1"
 
 val bundledAssetPackId = "inventory-assets-v14-mb7-pv13-faithful-special-heads"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"

@@ -1,13 +1,21 @@
 package cn.huohuas001.huhobot.inventory.skin;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.util.Locale;
 import java.util.Optional;
 
-/** Original programmatic fallback skin; no Mojang or third-party image is bundled. */
+/** Verified vanilla Steve fallback extracted from the user's Minecraft 26.1.2 client. */
 public final class DefaultPlayerSkinProvider implements PlayerSkinProvider {
-    private final PlayerSkin fallback = new PlayerSkin(createSkin(), "huhobot-default-v1", "LOCAL_DEFAULT", false);
+    static final String RESOURCE_PATH = "/assets/mintcat/default-steve.png";
+    static final String EXPECTED_SHA256 = "06628F9CEF88520DA742AB280A01677CE17C99717F964ED89ED791673121094C";
+
+    private final PlayerSkin fallback = loadVanillaSteve();
 
     @Override
     public Optional<PlayerSkin> findSkin(PlayerIdentity player) {
@@ -16,38 +24,39 @@ public final class DefaultPlayerSkinProvider implements PlayerSkinProvider {
 
     public PlayerSkin getFallback() { return fallback; }
 
-    private static BufferedImage createSkin() {
-        BufferedImage skin = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D graphics = skin.createGraphics();
-        try {
-            Color face = new Color(207, 151, 112);
-            Color hair = new Color(58, 36, 31);
-            Color shirt = new Color(43, 145, 151);
-            Color trousers = new Color(48, 55, 92);
-            fillCuboid(graphics, 0, 0, 8, 8, 8, face);
-            fillCuboid(graphics, 16, 16, 8, 12, 4, shirt);
-            fillCuboid(graphics, 40, 16, 4, 12, 4, face);
-            fillCuboid(graphics, 32, 48, 4, 12, 4, face);
-            fillCuboid(graphics, 0, 16, 4, 12, 4, trousers);
-            fillCuboid(graphics, 16, 48, 4, 12, 4, trousers);
-            graphics.setColor(hair);
-            graphics.fillRect(8, 8, 8, 3);
-            graphics.setColor(new Color(45, 30, 27));
-            graphics.fillRect(9, 11, 2, 1);
-            graphics.fillRect(13, 11, 2, 1);
-            fillCuboid(graphics, 16, 32, 8, 12, 4, new Color(78, 198, 197, 130));
-            fillCuboid(graphics, 40, 32, 4, 12, 4, new Color(78, 198, 197, 130));
-            fillCuboid(graphics, 48, 48, 4, 12, 4, new Color(78, 198, 197, 130));
-        } finally {
-            graphics.dispose();
+    private static PlayerSkin loadVanillaSteve() {
+        try (InputStream input = DefaultPlayerSkinProvider.class.getResourceAsStream(RESOURCE_PATH)) {
+            if (input == null) {
+                throw new IllegalStateException("Missing bundled vanilla Steve skin: " + RESOURCE_PATH);
+            }
+            byte[] bytes = readBytes(input);
+            String digest = hex(MessageDigest.getInstance("SHA-256").digest(bytes));
+            if (!EXPECTED_SHA256.equals(digest)) {
+                throw new IllegalStateException("Bundled vanilla Steve skin failed integrity verification");
+            }
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+            if (image == null || image.getWidth() != 64 || image.getHeight() != 64) {
+                throw new IllegalStateException("Bundled vanilla Steve skin must be a 64x64 PNG");
+            }
+            return new PlayerSkin(image, digest, "MINECRAFT_CLIENT_26.1.2", false);
+        } catch (IOException error) {
+            throw new IllegalStateException("Could not load bundled vanilla Steve skin", error);
+        } catch (java.security.NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is unavailable", impossible);
         }
-        return skin;
     }
 
-    private static void fillCuboid(
-        Graphics2D graphics, int u, int v, int width, int height, int depth, Color color
-    ) {
-        graphics.setColor(color);
-        graphics.fillRect(u, v, depth * 2 + width * 2, depth + height);
+    private static byte[] readBytes(InputStream input) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
+        return output.toByteArray();
+    }
+
+    private static String hex(byte[] bytes) {
+        StringBuilder result = new StringBuilder(bytes.length * 2);
+        for (byte value : bytes) result.append(String.format(Locale.ROOT, "%02X", value & 0xff));
+        return result.toString();
     }
 }
