@@ -40,17 +40,16 @@ fun dependencyJar(propertyName: String, environmentName: String, candidates: Lis
 val huhobotApiJar = dependencyJar(
     "huhobotApiJar",
     "HUHOBOT_API_JAR",
-    listOf(file("../PenguinClient-master/huhobot-api/build/libs/huhobot-api-1.2.1.jar"))
+    listOf(file("../PenguinClient-Main/PenguinClient-AddonAPI-compat/huhobot-api/build/libs/huhobot-api-1.2.1.jar"))
 )
 val huhobotQqSdkJar = dependencyJar(
     "huhobotQqSdkJar",
     "HUHOBOT_QQ_SDK_JAR",
     listOf(
-        file("../official-upstream-compat/2026-09-05/PenguinAgent-official/common/Bot/build/libs/common-Bot-1.6.1.jar"),
-        file("../official-upstream-compat/2026-09-05/PenguinClient-official/common/Bot/build/libs/common-Bot-1.2.2.jar"),
-        // ASCII junction used by the Windows build lane.
-        file("../mainline/common/Bot/build/libs/common-Bot-1.2.1.jar"),
-        file("../主分支/PenguinClient-1.2.1/common/Bot/build/libs/common-Bot-1.2.1.jar")
+        file("../PenguinAgent-AGENT/HuHoBot-v1.3.0-stable-source/common/Bot/build/libs/common-Bot-1.3.0.jar"),
+        file("../PenguinClient-Main/PenguinClient-latest/common/Bot/build/libs/common-Bot-1.4.0.jar"),
+        file("../PenguinAgent-AGENT/PenguinAgent-1.2.2/common/Bot/build/libs/common-Bot-1.2.2.jar"),
+        file("../PenguinClient-Main/PenguinClient-1.2.1/common/Bot/build/libs/common-Bot-1.2.1.jar")
     )
 )
 
