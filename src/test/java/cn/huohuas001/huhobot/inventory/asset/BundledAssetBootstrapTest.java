@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BundledAssetBootstrapTest {
@@ -29,7 +30,7 @@ class BundledAssetBootstrapTest {
         BundledAssetBootstrap.Installation first = BundledAssetBootstrap.install(dataRoot, classpath);
 
         assertEquals(
-            "inventory-assets-v14-mb7-pv13-faithful-special-heads",
+            "inventory-assets-v15-mb7-pv13-faithful-items-desktop-ui",
             first.getPackId()
         );
         assertEquals(1413, first.getGeneratedIcons());
@@ -43,14 +44,9 @@ class BundledAssetBootstrapTest {
         assertTrue(Files.isRegularFile(
             first.getThemesRoot().resolve("faithful32x/overrides/items/minecraft/red_bed.png")
         ));
-        assertTrue(Files.isRegularFile(first.getThemesRoot().resolve("cozyui-plus/theme.yml")));
-        assertTrue(Files.isRegularFile(first.getThemesRoot().resolve("cozyui-plus/background.png")));
-        assertTrue(Files.isRegularFile(
-            first.getThemesRoot().resolve("cozyui-plus/ender-chest-background.png")
-        ));
-        assertTrue(Files.isRegularFile(
-            first.getThemesRoot().resolve("cozyui-plus/LICENSE-CozyUI-Plus.txt")
-        ));
+        assertFalse(Files.exists(first.getThemesRoot().resolve("cozyui-plus")));
+        assertFalse(Files.exists(first.getThemesRoot().resolve("faithful32x/background.png")));
+        assertFalse(Files.exists(first.getThemesRoot().resolve("faithful32x/ender-chest-background.png")));
 
         VanillaImportedAssetProvider provider = VanillaImportedAssetProvider.open(first.getVanillaRoot());
         assertTrue(provider.isAvailable(), provider.getDiagnostic());

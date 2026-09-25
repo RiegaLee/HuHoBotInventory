@@ -172,8 +172,11 @@ final class OfficialQqCommandBridge implements AutoCloseable {
         @Commands(command = "inv", describe = "查询我的背包")
         public void inventoryAlias(GroupMessageEvent event, String ignored) { route(event); }
 
-        @Commands(command = "背包", describe = "查询我的背包")
+        @Commands(command = "我的背包", describe = "查询我的背包")
         public void inventoryChinese(GroupMessageEvent event, String ignored) { route(event); }
+
+        @Commands(command = "背包查看", describe = "管理员查询在线玩家背包")
+        public void inventoryAdmin(GroupMessageEvent event, String ignored) { route(event); }
 
         @Commands(command = "enderchest", describe = "查询我的末影箱")
         public void enderChest(GroupMessageEvent event, String ignored) { route(event); }
@@ -181,8 +184,11 @@ final class OfficialQqCommandBridge implements AutoCloseable {
         @Commands(command = "ec", describe = "查询我的末影箱")
         public void enderChestAlias(GroupMessageEvent event, String ignored) { route(event); }
 
-        @Commands(command = "末影箱", describe = "查询我的末影箱")
+        @Commands(command = "我的末影箱", describe = "查询我的末影箱")
         public void enderChestChinese(GroupMessageEvent event, String ignored) { route(event); }
+
+        @Commands(command = "末影箱查看", describe = "管理员查询在线玩家末影箱")
+        public void enderChestAdmin(GroupMessageEvent event, String ignored) { route(event); }
 
         @Commands(command = "绑定", describe = "绑定 Minecraft 账号")
         public void bind(GroupMessageEvent event, String ignored) { route(event); }

@@ -4,20 +4,21 @@ HuHoBot-Inventory 是一个不修改 HuHoBot 主体的 Minecraft 背包与末影
 
 - 作者：`RiegaLee`
 - 插件标识：`HuHoBotInventory`
-- 当前版本：`1.23.0`
+- 当前版本：`1.24.0`
 - 状态：`FULL PASS`
 
 正式构建请从仓库的 [Releases](../../releases) 页面下载，不要从第三方来源下载来历不明的 JAR。
 
 ## 功能
 
-- 生成 780×544 的 Minecraft 创造模式布局背包图片。
-- 生成独立的末影箱图片，尺寸由所选主题决定。
+- 生成与薄荷喵一致的 1359×1017 居中背包布局图片。
+- 生成与薄荷喵一致的 1620×694 居中末影箱布局图片。
 - 在线玩家读取实时背包/末影箱；离线玩家读取持久化快照。
 - 服务器完整重启且玩家保持离线后，仍可读取此前保存的快照。
 - 与 GameAuthCode 双账号绑定兼容，使用上下排列的 QQ 按钮选择查询账号。
 - 按钮限制发起用户、60 秒有效且只能消费一次；点击、新一轮选择或超时后会撤回原按钮消息。
-- 内置 Faithful 32x 默认主题与非官方 CozyUI+ 兼容主题。
+- UI 与资源包解耦：物品、特殊物品与头颅固定使用 Faithful 32x 资源，底图和圆角槽位由插件单独合成。
+- 支持把服主自己的 PNG 当作“桌面壁纸”，再为物品和人物绘制薄荷喵式圆角选择框；背包和末影箱可分别设置底图。
 - 混合分辨率物品图标、PV13 高精度 3D 人物/盔甲渲染，以及 Faithful 时钟、指南针和独立生物头颅贴图。
 - 玩家头颅按物品中保存的 Mojang 皮肤单独渲染并缓存；无皮肤数据时才使用通用 Faithful Steve 头颅。
 - 可选使用 SkinsRestorer 获取玩家当前皮肤。
@@ -39,10 +40,10 @@ Inventory 仅面向 HuHoBot-Penguin 官方主分支的 Spigot/Paper 路线；不
 
 安装前，请先确认服务器已经装好并能正常使用 HuHoBot-Penguin 官方主分支。
 
-1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.23.0.jar`。
+1. 从 [最新 Release](https://github.com/RiegaLee/HuHoBotInventory/releases/latest) 下载 `HuHoBot-Inventory-1.24.0.jar`。
 2. 将下载的 JAR 放入服务器的 `plugins/` 目录。
 3. 重启服务器。
-4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.23.0`，就表示安装成功。
+4. 在 HuHoBot 的“已安装扩展”中看到 `HuHoBotInventory 1.24.0`，就表示安装成功。
 
 首次启动会自动生成 `plugins/HuHoBotInventory/config.yml`，一般不需要修改即可使用。
 
@@ -67,10 +68,10 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 
 绑定完成后，在 QQ 群发送：
 
-- `/背包`：查看背包；
-- `/末影箱`：查看末影箱。
+- `/我的背包`：查看背包；
+- `/我的末影箱`：查看末影箱。
 
-绑定了两个账号时，机器人会显示账号选择按钮。按钮不能使用时，也可以发送 `/背包 1`、`/背包 2`、`/末影箱 1` 或 `/末影箱 2`。
+绑定了两个账号时，机器人会显示账号选择按钮。按钮不能使用时，也可以发送 `/我的背包 1`、`/我的背包 2`、`/我的末影箱 1` 或 `/我的末影箱 2`。
 
 ### 离线查询说明
 
@@ -86,13 +87,14 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 
 | 命令 | 别名 | 说明 |
 | --- | --- | --- |
-| `/背包` | `/inventory`、`/inv` | 查询本人已绑定账号的背包 |
-| `/背包 <序号>` | `/inventory <序号>` | 文字方式选择多个绑定账号 |
-| `/背包 <在线玩家名>` | — | 管理员查询指定在线玩家 |
-| `/末影箱` | `/enderchest`、`/ec` | 查询本人已绑定账号的末影箱 |
-| `/末影箱 <序号>` | `/enderchest <序号>` | 文字方式选择多个绑定账号 |
+| `/我的背包` | `/inventory`、`/inv` | 查询本人已绑定账号的背包 |
+| `/我的背包 <序号>` | `/inventory <序号>` | 文字方式选择多个绑定账号 |
+| `/背包查看 <在线玩家名>` | — | 管理员查询指定在线玩家的背包 |
+| `/我的末影箱` | `/enderchest`、`/ec` | 查询本人已绑定账号的末影箱 |
+| `/我的末影箱 <序号>` | `/enderchest <序号>` | 文字方式选择多个绑定账号 |
+| `/末影箱查看 <在线玩家名>` | — | 管理员查询指定在线玩家的末影箱 |
 
-多账号用户直接发送 `/背包` 或 `/末影箱` 时，机器人优先显示纵向账号按钮；按钮不可用时会自动回退到文字序号流程。
+多账号用户直接发送 `/我的背包` 或 `/我的末影箱` 时，机器人优先显示纵向账号按钮；按钮不可用时会自动回退到文字序号流程。
 
 `/inventorytest`（别名 `/invtest`）是关闭菜单发布的渲染诊断命令，通常只用于部署检查。
 
@@ -119,19 +121,27 @@ Inventory 本身不负责登录和绑定。AuthMe 用来验证游戏账号，Gam
 | `offline-ender-chest.enabled` | `true` | 保存和读取离线末影箱快照 |
 | `player-preview.provider` | `auto` | 自动选择皮肤来源 |
 | `player-preview.allow-texture-downloads` | `true` | 是否允许下载玩家皮肤纹理 |
-| `render.theme` | `faithful32x` | 默认渲染主题 |
+| `render.custom-background.enabled` | `false` | 是否启用本地 PNG 自定义底图 |
 | `render.max-output-bytes` | `4194304` | 单张输出图片大小上限 |
 
-### 切换界面主题
+### 使用自己的底图
 
-默认使用 `faithful32x`。如需启用非官方 CozyUI+ 兼容主题，将配置改为：
+1. 先启动一次插件，让它创建 `plugins/HuHoBotInventory/assets/custom/backgrounds/`。
+2. 将自己的 PNG 放入该目录，例如 `inventory.png`；图片没有固定尺寸，建议使用与当前画布接近的横向比例，并遵守下述文件与像素上限。
+3. 修改配置并完整重启服务器：
 
 ```yaml
 render:
-  theme: cozyui-plus
+  custom-background:
+    enabled: true
+    inventory-file: inventory.png
+    ender-chest-file: "" # 留空时与背包共用；也可填 ender.png
+    fit: cover           # 保持比例居中裁切；stretch 为拉伸铺满
 ```
 
-保存后完整重启服务器即可。该设置会同时切换背包与末影箱底图，不影响物品、皮肤和离线快照数据。
+合成方式类似 Windows 桌面：“用户底图 → 各物品位置的半透明圆角选择框与人物框 → 物品、数量与人物模型”。只有图标所在区域会加深以保证可读性，壁纸的其他部分保持原色；整张图片会按画布尺寸居中裁切并做圆角。物品贴图固定来自 Faithful 32x，不再使用 Faithful 或 CozyUI+ 的背包底板。底图仅从上述本地目录读取，文件名只能包含英文字母、数字、点、下划线或连字符，且必须是 PNG。单个文件最大 16 MiB，解码后最大 3200 万像素。
+
+如果启用了自定义底图但文件缺失、格式错误或超出限制，插件会拒绝载入并在服务端日志中给出原因，避免悄悄使用错误图片。
 
 ## 开发者构建
 
@@ -147,8 +157,6 @@ render:
 - 不得商业化含有其资源的内容。
 
 完整信息见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)、[Faithful License](THIRD_PARTY_LICENSES/Faithful-LICENSE.txt) 与[精确资源来源记录](src/main/resources/themes/faithful32x/SOURCES.md)。
-
-可选的 `cozyui-plus` 是基于 [CozyUI+](https://github.com/Fogg05/CozyUI-Plus) 制作的非官方兼容主题。界面原作者为零雾〇五 Fogg05，相关 GUI 修改资源继续适用 [GNU GPL v3.0](THIRD_PARTY_LICENSES/CozyUI-Plus-GPL-3.0.txt)。本项目不宣称该界面设计为原创作品，也不是 CozyUI+ 官方续作。精确修改记录见 [CozyUI+ 主题来源说明](src/main/resources/themes/cozyui-plus/SOURCES.md)。
 
 Minecraft、HuHoBot、Paper/Spigot、SkinsRestorer 等名称及资源属于各自权利人。本插件不是其官方产品。
 

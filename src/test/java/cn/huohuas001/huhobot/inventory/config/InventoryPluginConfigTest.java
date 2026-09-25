@@ -40,7 +40,7 @@ class InventoryPluginConfigTest {
         assertEquals(300, config.getOfflinePeriodicSaveSeconds());
         assertTrue(config.isEnderChestEnabled());
         assertEquals("enderchest", config.getEnderChestCommandName());
-        assertTrue(config.getEnderChestCommandAliases().contains("末影箱"));
+        assertTrue(config.getEnderChestCommandAliases().contains("我的末影箱"));
         assertEquals("local-paper", config.getEnderChestSourceServer());
         assertEquals("ender-chest.png", config.getEnderChestImageFileName());
         assertTrue(config.isOfflineEnderChestEnabled());
@@ -145,7 +145,7 @@ class InventoryPluginConfigTest {
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
         assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals("enderchest", yaml.getString("ender-chest-command.name"));
-        assertEquals(java.util.Arrays.asList("ec", "末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
         assertEquals("data/offline-ender-chest-snapshots", yaml.getString("offline-ender-chest.directory"));
         assertEquals("末影箱图片生成或发送失败，请稍后再试。", yaml.getString("messages.ender-chest-failure"));
         assertTrue(InventoryPluginConfig.load(yaml).isEnderChestEnabled());
@@ -171,7 +171,34 @@ class InventoryPluginConfigTest {
         yaml.set("render.theme", null);
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
-        assertEquals(10, yaml.getInt("config-version"));
+        assertEquals(12, yaml.getInt("config-version"));
+        assertEquals("faithful32x", yaml.getString("render.theme"));
+        assertFalse(yaml.getBoolean("render.custom-background.enabled"));
+        assertEquals("inventory.png", yaml.getString("render.custom-background.inventory-file"));
+        assertEquals("", yaml.getString("render.custom-background.ender-chest-file"));
+        assertEquals("cover", yaml.getString("render.custom-background.fit"));
+        assertEquals(java.util.Arrays.asList("inv", "我的背包"), yaml.getStringList("online-command.aliases"));
+        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals("faithful32x", InventoryPluginConfig.load(yaml).getThemeId());
+    }
+
+    @Test
+    void migratesVersionElevenCommandsAndRetiresUiThemeSelection() {
+        YamlConfiguration yaml = phaseOneConfig();
+        InventoryPluginConfig.migrateToCurrent(yaml);
+        yaml.set("config-version", 11);
+        yaml.set("online-command.aliases", java.util.Arrays.asList("inv", "背包"));
+        yaml.set("ender-chest-command.aliases", java.util.Arrays.asList("ec", "末影箱"));
+        yaml.set("messages.usage", "用法：/背包，管理员可使用 /背包 <在线玩家名>");
+        yaml.set("messages.ender-chest-usage", "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>");
+        yaml.set("render.theme", "cozyui-plus");
+
+        assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
+        assertEquals(12, yaml.getInt("config-version"));
+        assertEquals(java.util.Arrays.asList("inv", "我的背包"), yaml.getStringList("online-command.aliases"));
+        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals("用法：/我的背包 [账号序号]", yaml.getString("messages.usage"));
+        assertEquals("用法：/我的末影箱 [账号序号]", yaml.getString("messages.ender-chest-usage"));
         assertEquals("faithful32x", yaml.getString("render.theme"));
         assertEquals("faithful32x", InventoryPluginConfig.load(yaml).getThemeId());
     }

@@ -1,61 +1,61 @@
 format-version: 1
 
 canvas:
-  width: 780
-  height: 544
+  width: 1359
+  height: 1017
 
 slot:
-  size: 72
-  item-size: 64
+  size: 104
+  item-size: 96
 
 title:
   x: 0
   y: 0
 
 storage:
-  start-x: 32
-  start-y: 212
+  start-x: 151
+  start-y: 485
   columns: 9
   rows: 3
-  step-x: 72
-  step-y: 72
+  step-x: 119
+  step-y: 114
 
 hotbar:
-  start-x: 32
-  start-y: 444
+  start-x: 151
+  start-y: 861
   columns: 9
   rows: 1
-  step-x: 72
-  step-y: 72
+  step-x: 119
+  step-y: 114
 
 armor:
-  head: {x: 212, y: 20}
-  chest: {x: 212, y: 128}
-  legs: {x: 428, y: 20}
-  feet: {x: 428, y: 128}
+  head: {x: 399, y: 143}
+  chest: {x: 399, y: 286}
+  legs: {x: 844, y: 143}
+  feet: {x: 844, y: 286}
 
 offhand:
-  x: 136
-  y: 76
+  x: 210
+  y: 221
 
 player-preview:
-  x: 292
-  y: 24
-  width: 128
-  height: 172
+  x: 537
+  y: 80
+  width: 272
+  height: 373
 
 freshness:
-  x: 520
-  y: 20
-  width: 240
-  height: 22
+  x: 976
+  y: 26
+  width: 360
+  height: 32
 
 quantity:
-  offset-x: 68
-  offset-y: 68
+  offset-x: 100
+  offset-y: 100
 
 durability:
-  offset-x: 8
-  offset-y: 64
-  width: 56
-  height: 4
+  offset-x: 12
+  offset-y: 96
+  width: 80
+  height: 6

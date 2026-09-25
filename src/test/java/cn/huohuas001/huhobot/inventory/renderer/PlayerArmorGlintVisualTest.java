@@ -26,7 +26,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Final 780x544 composition gate for the PV9 supersampled deterministic armor glint layer. */
+/** Final MintCat-size composition gate for the supersampled deterministic armor glint layer. */
 class PlayerArmorGlintVisualTest {
     private static final Path OUTPUT = Paths.get(
         "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875", "player-armor-glint"
@@ -51,8 +51,8 @@ class PlayerArmorGlintVisualTest {
             skin, ArmorEquipmentSet.from(snapshot), equipmentAssets
         );
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot, preview);
-        assertEquals(780, result.getWidth());
-        assertEquals(544, result.getHeight());
+        assertEquals(1359, result.getWidth());
+        assertEquals(1017, result.getHeight());
         assertTrue(result.getByteSize() > 15_000);
 
         Files.createDirectories(OUTPUT);

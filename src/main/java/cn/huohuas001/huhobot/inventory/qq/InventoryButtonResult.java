@@ -3,8 +3,8 @@ package cn.huohuas001.huhobot.inventory.qq;
 /** Official QQ interaction acknowledgement codes used by Inventory. */
 public enum InventoryButtonResult {
     SUCCESS(0),
-    EXPIRED_INVENTORY(1, "账号选择已超时，请重新发送 /背包。"),
-    EXPIRED_ENDER_CHEST(1, "账号选择已超时，请重新发送 /末影箱。"),
+    EXPIRED_INVENTORY(1, "账号选择已超时，请重新发送 /我的背包。"),
+    EXPIRED_ENDER_CHEST(1, "账号选择已超时，请重新发送 /我的末影箱。"),
     FAILED(1),
     TOO_FREQUENT(2),
     DUPLICATE(3),

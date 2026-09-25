@@ -1,10 +1,9 @@
 format-version: 1
 id: faithful32x
-name: Faithful 32x Inventory
-version: 1.11.0
+name: Faithful 32x Items / Desktop UI
+version: 2.0.0
 minecraft-version: "Faithful assets 26.2; selected keys tested with Paper 1.21.11"
-asset-pack-version: "Faithful 32x 1.21.11 special icons; dynamic player heads; PV13 player renderer; MB7 native-64 icons"
-background: background.png
+asset-pack-version: "Faithful 32x items; MintCat layout; dynamic player heads; PV13 player renderer; MB7 native-64 icons"
 layout: layout.yml
 textures-directory: assets
 overrides-directory: overrides/items
@@ -20,3 +19,19 @@ render:
   draw-slot-backgrounds: false
   draw-player-preview-matte: false
   texture-interpolation: nearest
+
+ender-chest:
+  canvas:
+    width: 1620
+    height: 694
+  storage:
+    start-x: 175
+    start-y: 138
+    step-x: 143
+    step-y: 149
+  slot:
+    size: 128
+    item-size: 112
+  freshness:
+    x: 96
+    y: 48

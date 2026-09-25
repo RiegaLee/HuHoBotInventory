@@ -25,7 +25,7 @@ class EnderChestRendererTest {
         InventorySnapshot snapshot = new MockInventoryDataSource("ender-render-test")
             .createSnapshot("Steve");
         EnderChestRenderer renderer = new EnderChestRenderer(
-            theme, THEME.resolve("ender-chest-background.png")
+            theme, LayeredBackground.placeholderEnderChest(theme)
         );
 
         RenderResult realtime = renderer.render(
@@ -36,15 +36,15 @@ class EnderChestRendererTest {
         );
 
         assertEquals("image/png", realtime.getMimeType());
-        assertEquals(704, realtime.getWidth());
-        assertEquals(308, realtime.getHeight());
+        assertEquals(1620, realtime.getWidth());
+        assertEquals(694, realtime.getHeight());
         assertTrue(realtime.getByteSize() > 8_000);
         assertTrue(realtime.getByteSize() < 4 * 1024 * 1024);
         assertNotEquals(java.util.Arrays.hashCode(realtime.getBytes()), java.util.Arrays.hashCode(offline.getBytes()));
         BufferedImage image = ImageIO.read(new ByteArrayInputStream(realtime.getBytes()));
         assertNotNull(image);
-        assertEquals(704, image.getWidth());
-        assertEquals(308, image.getHeight());
+        assertEquals(1620, image.getWidth());
+        assertEquals(694, image.getHeight());
 
         Path output = Paths.get("build", "rendered-test-output", "ender-chest-1.17.0-reference.png");
         Files.createDirectories(output.getParent());

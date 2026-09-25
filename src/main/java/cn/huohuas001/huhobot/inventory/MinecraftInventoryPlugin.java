@@ -7,6 +7,7 @@ import cn.huohuas001.huhobot.inventory.asset.BundledAssetBootstrap;
 import cn.huohuas001.huhobot.inventory.asset.VanillaImportedAssetProvider;
 import cn.huohuas001.huhobot.inventory.armor.ArmorItemIconRenderer;
 import cn.huohuas001.huhobot.inventory.armor.EquipmentAssetResolver;
+import cn.huohuas001.huhobot.inventory.config.CustomBackgroundConfig;
 import cn.huohuas001.huhobot.inventory.config.InventoryPluginConfig;
 import cn.huohuas001.huhobot.inventory.host.EmbeddedHuHoBotHost;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineInventoryDataSource;
@@ -17,6 +18,7 @@ import cn.huohuas001.huhobot.inventory.head.PlayerHeadIconCache;
 import cn.huohuas001.huhobot.inventory.renderer.Java2DInventoryRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.EnderChestRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.InventoryRenderer;
+import cn.huohuas001.huhobot.inventory.renderer.LayeredBackground;
 import cn.huohuas001.huhobot.inventory.renderer.PlayerHeadPreparingRenderer;
 import cn.huohuas001.huhobot.inventory.renderer.Theme;
 import cn.huohuas001.huhobot.inventory.renderer.ThemeLoader;
@@ -39,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +76,7 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                     bundledAssets.getReusedFiles() + " reused"
             );
             InventoryPluginConfig config = InventoryPluginConfig.load(getConfig());
+            CustomBackgroundConfig customBackground = CustomBackgroundConfig.load(getConfig());
             Path themeDirectory = selectThemeDirectory(config.getThemeId(), bundledAssets);
             VanillaImportedAssetProvider bundledVanilla = VanillaImportedAssetProvider.open(
                 bundledAssets.getVanillaRoot()
@@ -199,6 +203,40 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
 
             HuHoBotService hostService = embeddedHost.getService();
 
+            BufferedImage inventoryBackground = null;
+            BufferedImage enderChestBackground = null;
+            if (customBackground.isEnabled()) {
+                Path backgroundsDirectory = bundledAssets.getCustomRoot().resolve("backgrounds");
+                Path inventoryFile = customBackground.inventoryPath(backgroundsDirectory);
+                inventoryBackground = LayeredBackground.forInventory(
+                    theme,
+                    inventoryFile,
+                    customBackground.getFit()
+                );
+                if (config.isEnderChestEnabled()) {
+                    Path enderChestFile = customBackground.enderChestPath(backgroundsDirectory);
+                    enderChestBackground = LayeredBackground.forEnderChest(
+                        theme,
+                        enderChestFile,
+                        customBackground.getFit()
+                    );
+                }
+                getLogger().info(
+                    "Using custom Inventory backgrounds from " + backgroundsDirectory +
+                        " (fit=" + customBackground.getFit() +
+                        ", ui=mintcat-rounded)"
+                );
+            } else {
+                inventoryBackground = LayeredBackground.placeholderInventory(theme);
+                if (config.isEnderChestEnabled()) {
+                    enderChestBackground = LayeredBackground.placeholderEnderChest(theme);
+                }
+                getLogger().info(
+                    "Using temporary neutral Inventory wallpaper; configure render.custom-background " +
+                        "to supply a local PNG"
+                );
+            }
+
             PluginDescriptor descriptor = new PluginDescriptor(
                 "minecraft-inventory",
                 getDescription().getName(),
@@ -207,11 +245,13 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
             );
             buttonBridge = createButtonBridge();
             InventoryRenderer inventoryRenderer = new PlayerHeadPreparingRenderer(
-                new Java2DInventoryRenderer(theme), playerHeadIcons, 4
+                new Java2DInventoryRenderer(theme, inventoryBackground),
+                playerHeadIcons,
+                4
             );
             InventoryRenderer enderChestRenderer = config.isEnderChestEnabled()
                 ? new PlayerHeadPreparingRenderer(
-                    new EnderChestRenderer(theme, themeDirectory.resolve("ender-chest-background.png")),
+                    new EnderChestRenderer(theme, enderChestBackground),
                     playerHeadIcons,
                     4
                 )
@@ -242,8 +282,8 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 );
             }
             getLogger().info(
-                "Using inventory theme " + theme.getId() + " " + theme.getVersion() +
-                    " (" + theme.getAssetPackVersion() + ")"
+                "Using Faithful inventory item assets " + theme.getVersion() +
+                    " (" + theme.getAssetPackVersion() + "); UI=desktop-rounded"
             );
         } catch (Throwable error) {
             disable("Could not initialize the HuHoBot Minecraft Inventory addon", error);

@@ -90,8 +90,8 @@ class FaithfulSpecialStaticOverrideTest {
     }
 
     @Test
-    void faithfulSpecialIconsAreIndividualManagedTexturesInBothThemes() throws Exception {
-        for (String theme : Arrays.asList("faithful32x", "cozyui-plus")) {
+    void faithfulSpecialIconsAreIndividualManagedTextures() throws Exception {
+        for (String theme : Arrays.asList("faithful32x")) {
             Path root = Paths.get(
                 "src", "main", "resources", "themes", theme, "special-variants", "minecraft"
             );

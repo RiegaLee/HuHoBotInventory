@@ -63,10 +63,10 @@ class QqInventoryButtonBridgeTest {
     @Test
     void expiredResultsUseSuccessAckAndExplicitRetryText() {
         assertEquals(1, InventoryButtonResult.EXPIRED_INVENTORY.getPlatformCode());
-        assertEquals("账号选择已超时，请重新发送 /背包。",
+        assertEquals("账号选择已超时，请重新发送 /我的背包。",
             InventoryButtonResult.EXPIRED_INVENTORY.getFeedbackMessage());
         assertEquals(1, InventoryButtonResult.EXPIRED_ENDER_CHEST.getPlatformCode());
-        assertEquals("账号选择已超时，请重新发送 /末影箱。",
+        assertEquals("账号选择已超时，请重新发送 /我的末影箱。",
             InventoryButtonResult.EXPIRED_ENDER_CHEST.getFeedbackMessage());
         assertNull(InventoryButtonResult.DUPLICATE.getFeedbackMessage());
     }

@@ -1,4 +1,4 @@
-config-version: 10
+config-version: 12
 
 # 仅排查问题时开启；关闭时普通查询不输出调试日志。
 debug: false
@@ -13,14 +13,14 @@ online-command:
   name: inventory
   aliases:
     - inv
-    - 背包
+    - 我的背包
   publish-to-menu: false
 
 ender-chest-command:
   name: enderchest
   aliases:
     - ec
-    - 末影箱
+    - 我的末影箱
   publish-to-menu: false
 
 mock:
@@ -77,16 +77,24 @@ player-preview:
   connect-timeout-ms: 4000
   read-timeout-ms: 8000
 
-# 主题：faithful32x 或 cozyui-plus
 render:
-  theme: faithful32x
+  # UI 底板已与物品资源解耦；物品贴图固定采用 Faithful 32x。
+  # 可选的用户底图。PNG 放入 plugins/HuHoBotInventory/assets/custom/backgrounds/。
+  # 插件会在壁纸上绘制薄荷喵式圆角槽位、人物框和圆角外框。
+  custom-background:
+    enabled: false
+    inventory-file: inventory.png
+    # 留空时末影箱复用 inventory-file；也可填写单独的 PNG 文件名。
+    ender-chest-file: ""
+    # cover 保持比例并居中裁切；stretch 拉伸到整个画布。
+    fit: cover
   max-output-bytes: 4194304
   image-file-name: mock-inventory.png
   optional-caption: "Mock inventory: %player%"
 
 messages:
   failure: "背包图片生成或发送失败，请稍后再试"
-  usage: "用法：/背包，管理员可使用 /背包 <在线玩家名>"
+  usage: "用法：/我的背包 [账号序号]"
   player-offline: "玩家当前不在线，暂时无法查询背包。"
   player-state-changed: "玩家状态发生变化，请重新查询。"
   not-authorized: "权限不足，无法查询在线玩家背包。"
@@ -96,7 +104,7 @@ messages:
   offline-snapshot-missing: "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。"
   offline-legacy-denied: "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。"
   ender-chest-failure: "末影箱图片生成或发送失败，请稍后再试。"
-  ender-chest-usage: "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>"
+  ender-chest-usage: "用法：/我的末影箱 [账号序号]"
   ender-chest-player-offline: "玩家当前不在线，且暂时没有可用的末影箱快照。"
   ender-chest-player-state-changed: "玩家状态发生变化，请重新查询末影箱。"
   ender-chest-not-authorized: "权限不足，无法查询其他玩家的末影箱。"

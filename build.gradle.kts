@@ -10,9 +10,9 @@ plugins {
 }
 
 group = "cn.huohuas001.huhobot.addons"
-version = "1.23.0"
+version = "1.24.0"
 
-val bundledAssetPackId = "inventory-assets-v14-mb7-pv13-faithful-special-heads"
+val bundledAssetPackId = "inventory-assets-v15-mb7-pv13-faithful-items-desktop-ui"
 val bundledVanillaCacheKey = "26.1.2-B1B315857266-MB7-PD1337875"
 val bundledVanillaSource = file("data/imported-assets/vanilla/$bundledVanillaCacheKey")
 val generatedBundledResources = layout.buildDirectory.dir("generated/bundled-assets/resources")
@@ -106,6 +106,11 @@ val generateBundledAssets by tasks.registering {
         val themeResources = themeIndex.readLines()
             .map { it.trim() }
             .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .filterNot {
+                it.startsWith("themes/cozyui-plus/") ||
+                    it == "themes/faithful32x/background.png" ||
+                    it == "themes/faithful32x/ender-chest-background.png"
+            }
         themeResources.forEach { relative ->
             check(!relative.startsWith("/") && !relative.contains("\\") && !relative.contains("..")) {
                 "Unsafe bundled theme resource $relative"
@@ -216,6 +221,9 @@ val generateBundledAssets by tasks.registering {
 tasks.processResources {
     dependsOn(generateBundledAssets)
     from(generatedBundledResources)
+    exclude("themes/cozyui-plus/**")
+    exclude("themes/faithful32x/background.png")
+    exclude("themes/faithful32x/ender-chest-background.png")
     filesMatching("plugin.yml") {
         expand("version" to project.version)
     }
@@ -265,6 +273,11 @@ val verifyAddonJar by tasks.registering {
                 .readLines()
                 .map { it.trim() }
                 .filter { it.isNotEmpty() && !it.startsWith("#") }
+                .filterNot {
+                    it.startsWith("themes/cozyui-plus/") ||
+                        it == "themes/faithful32x/background.png" ||
+                        it == "themes/faithful32x/ender-chest-background.png"
+                }
             (listOf(
                 "plugin.yml",
                 "config.yml",
@@ -289,8 +302,7 @@ val verifyAddonJar by tasks.registering {
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/trident.png",
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/potion_overlay.png",
                 "bundled-assets/pack/themes/faithful32x/runtime-composites/items/minecraft/tipped_arrow_base.png",
-                "bundled-assets/pack/themes/faithful32x/overrides/items/minecraft/shield.png",
-                "bundled-assets/pack/themes/faithful32x/ender-chest-background.png"
+                "bundled-assets/pack/themes/faithful32x/overrides/items/minecraft/shield.png"
             ) + bundledThemeResources).forEach { required ->
                 check(required in entries) { "Addon JAR is missing $required" }
             }

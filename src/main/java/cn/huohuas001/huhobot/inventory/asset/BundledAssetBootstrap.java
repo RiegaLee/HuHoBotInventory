@@ -46,6 +46,7 @@ public final class BundledAssetBootstrap {
         Files.createDirectories(packRoot);
         Files.createDirectories(customRoot.resolve("overrides/items"));
         Files.createDirectories(customRoot.resolve("themes"));
+        Files.createDirectories(customRoot.resolve("backgrounds"));
 
         int installed = 0;
         int reused = 0;

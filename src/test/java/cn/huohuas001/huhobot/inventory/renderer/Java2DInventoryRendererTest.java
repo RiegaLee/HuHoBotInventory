@@ -86,8 +86,8 @@ class Java2DInventoryRendererTest {
 
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("MockPlayer");
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot);
-        assertEquals(780, result.getWidth());
-        assertEquals(544, result.getHeight());
+        assertEquals(1359, result.getWidth());
+        assertEquals(1017, result.getHeight());
         assertTrue(result.getByteSize() > 10_000);
         assertTrue(result.getByteSize() < 4 * 1024 * 1024);
 
@@ -97,26 +97,25 @@ class Java2DInventoryRendererTest {
     }
 
     @Test
-    void faithfulBackgroundUsesFullCreativePanelWithoutTrashButton() throws Exception {
+    void faithfulThemeUsesMintCatCenteredDesktopLayout() throws Exception {
         Theme theme = ThemeLoader.load(FAITHFUL_THEME);
         BufferedImage background = theme.getBackground();
-        assertEquals(780, background.getWidth());
-        assertEquals(544, background.getHeight());
-        for (int y = 436; y < 520; y++) for (int x = 688; x < 760; x++) {
-            assertEquals(background.getRGB(764, y), background.getRGB(x, y),
-                "trash button must be replaced with the adjacent panel color at " + x + ',' + y);
-        }
+        assertEquals(1359, background.getWidth());
+        assertEquals(1017, background.getHeight());
+        assertEquals(0, background.getRGB(0, 0) >>> 24,
+            "the theme must not supply a baked-in Faithful or CozyUI+ background");
         Layout layout = theme.getLayout();
-        assertEquals(new java.awt.Rectangle(212, 20, 72, 72),
+        assertEquals(new java.awt.Rectangle(399, 143, 104, 104),
             layout.slotBounds(InventorySlot.empty(SlotType.ARMOR_HEAD, 0)));
-        assertEquals(new java.awt.Rectangle(428, 128, 72, 72),
+        assertEquals(new java.awt.Rectangle(844, 286, 104, 104),
             layout.slotBounds(InventorySlot.empty(SlotType.ARMOR_FEET, 0)));
-        assertEquals(new java.awt.Rectangle(136, 76, 72, 72),
+        assertEquals(new java.awt.Rectangle(210, 221, 104, 104),
             layout.slotBounds(InventorySlot.empty(SlotType.OFFHAND, 0)));
-        assertEquals(new java.awt.Rectangle(32, 212, 72, 72),
+        assertEquals(new java.awt.Rectangle(151, 485, 104, 104),
             layout.slotBounds(InventorySlot.empty(SlotType.STORAGE, 0)));
-        assertEquals(new java.awt.Rectangle(32, 444, 72, 72),
+        assertEquals(new java.awt.Rectangle(151, 861, 104, 104),
             layout.slotBounds(InventorySlot.empty(SlotType.HOTBAR, 0)));
+        assertEquals(new java.awt.Rectangle(537, 80, 272, 373), layout.getPlayerPreview());
     }
 
     @Test
@@ -137,8 +136,8 @@ class Java2DInventoryRendererTest {
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot, preview);
         BufferedImage decoded = ImageIO.read(new ByteArrayInputStream(result.getBytes()));
 
-        assertEquals(780, decoded.getWidth());
-        assertEquals(544, decoded.getHeight());
+        assertEquals(1359, decoded.getWidth());
+        assertEquals(1017, decoded.getHeight());
 
         Path output = Paths.get(
             "data", "visual-audit", "26.1.2-B1B315857266-MB7-PD1337875",
@@ -270,10 +269,22 @@ class Java2DInventoryRendererTest {
             org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(legacy.resolve("layout.yml").toFile());
         yaml.set("canvas.width", 704);
         yaml.set("canvas.height", 664);
+        yaml.set("slot.size", 72);
+        yaml.set("slot.item-size", 64);
         yaml.set("storage.start-x", 28);
         yaml.set("storage.start-y", 332);
+        yaml.set("storage.step-x", 72);
+        yaml.set("storage.step-y", 76);
         yaml.set("hotbar.start-x", 28);
         yaml.set("hotbar.start-y", 564);
+        yaml.set("hotbar.step-x", 72);
+        yaml.set("hotbar.step-y", 76);
+        yaml.set("quantity.offset-x", 68);
+        yaml.set("quantity.offset-y", 68);
+        yaml.set("durability.offset-x", 6);
+        yaml.set("durability.offset-y", 64);
+        yaml.set("durability.width", 60);
+        yaml.set("durability.height", 4);
         yaml.set("armor.head.x", 28);
         yaml.set("armor.head.y", 28);
         yaml.set("armor.chest.x", 28);

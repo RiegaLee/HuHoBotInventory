@@ -59,6 +59,7 @@ public final class InventoryCommand implements CommandHandler {
     private final PlayerPreviewService previewService;
     private final OfflineInventorySnapshotStore offlineStore;
     private final InventoryButtonBridge buttonBridge;
+    private final boolean adminLookupOnly;
     private final Map<String, Long> requesterCooldowns = new HashMap<String, Long>();
     private final Map<String, Long> targetCooldowns = new HashMap<String, Long>();
     private final Map<String, PendingSelection> pendingSelections = new HashMap<String, PendingSelection>();
@@ -106,6 +107,47 @@ public final class InventoryCommand implements CommandHandler {
         return new InventoryCommand(
             dataSource, renderer, config, bindings, logger, Mode.ENDER_CHEST, null, offlineStore,
             InventoryButtonBridge.UNAVAILABLE
+        );
+    }
+
+    public static InventoryCommand adminOnline(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        PluginLogger logger,
+        PlayerPreviewService previewService
+    ) {
+        return new InventoryCommand(
+            dataSource,
+            renderer,
+            config,
+            BindingService.UNAVAILABLE,
+            logger,
+            Mode.ONLINE,
+            previewService,
+            null,
+            InventoryButtonBridge.UNAVAILABLE,
+            true
+        );
+    }
+
+    public static InventoryCommand adminEnderChest(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        PluginLogger logger
+    ) {
+        return new InventoryCommand(
+            dataSource,
+            renderer,
+            config,
+            BindingService.UNAVAILABLE,
+            logger,
+            Mode.ENDER_CHEST,
+            null,
+            null,
+            InventoryButtonBridge.UNAVAILABLE,
+            true
         );
     }
 
@@ -178,6 +220,32 @@ public final class InventoryCommand implements CommandHandler {
         OfflineInventorySnapshotStore offlineStore,
         InventoryButtonBridge buttonBridge
     ) {
+        this(
+            dataSource,
+            renderer,
+            config,
+            bindings,
+            logger,
+            mode,
+            previewService,
+            offlineStore,
+            buttonBridge,
+            false
+        );
+    }
+
+    private InventoryCommand(
+        InventoryDataSource dataSource,
+        InventoryRenderer renderer,
+        InventoryPluginConfig config,
+        BindingService bindings,
+        PluginLogger logger,
+        Mode mode,
+        PlayerPreviewService previewService,
+        OfflineInventorySnapshotStore offlineStore,
+        InventoryButtonBridge buttonBridge,
+        boolean adminLookupOnly
+    ) {
         this.dataSource = Objects.requireNonNull(dataSource, "dataSource");
         this.renderer = Objects.requireNonNull(renderer, "renderer");
         this.config = Objects.requireNonNull(config, "config");
@@ -187,6 +255,7 @@ public final class InventoryCommand implements CommandHandler {
         this.previewService = previewService;
         this.offlineStore = offlineStore;
         this.buttonBridge = Objects.requireNonNull(buttonBridge, "buttonBridge");
+        this.adminLookupOnly = adminLookupOnly;
     }
 
     @Override
@@ -305,6 +374,14 @@ public final class InventoryCommand implements CommandHandler {
     private TargetResolution resolveTarget(CommandContext context) {
         if (mode == Mode.MOCK) return TargetResolution.resolved(config.getMockPlayerName(), null);
         String arguments = context.getInvocation().getArguments().trim();
+        if (adminLookupOnly) {
+            if (!context.getPrincipal().getRole().isAdministrator()) {
+                return TargetResolution.rejected(notAuthorizedMessage());
+            }
+            return validPlayerName(arguments)
+                ? TargetResolution.resolved(arguments, null)
+                : TargetResolution.rejected(adminUsageMessage());
+        }
         String groupId = firstNonBlank(
             context.getMessage().getGroupOpenId(),
             context.getMessage().getGroupId()
@@ -332,12 +409,7 @@ public final class InventoryCommand implements CommandHandler {
                     ));
                 }
             }
-            if (!context.getPrincipal().getRole().isAdministrator()) {
-                return TargetResolution.rejected(notAuthorizedMessage());
-            }
-            return validPlayerName(arguments)
-                ? TargetResolution.resolved(arguments, null)
-                : TargetResolution.rejected(usageMessage());
+            return TargetResolution.rejected(usageMessage());
         }
 
         if (groupId == null || userId == null) {
@@ -512,6 +584,12 @@ public final class InventoryCommand implements CommandHandler {
         return mode == Mode.ENDER_CHEST
             ? config.getEnderChestCommandName()
             : config.getOnlineCommandName();
+    }
+
+    private String adminUsageMessage() {
+        return mode == Mode.ENDER_CHEST
+            ? "用法：/末影箱查看 <在线玩家名>"
+            : "用法：/背包查看 <在线玩家名>";
     }
 
     private static String selectionKey(String groupId, String userId) {

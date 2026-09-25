@@ -36,7 +36,7 @@ public final class EnderChestRenderer implements InventoryRenderer {
         this(theme, loadBackground(backgroundPath, theme.getEnderChestLayout()));
     }
 
-    EnderChestRenderer(Theme theme, BufferedImage background) {
+    public EnderChestRenderer(Theme theme, BufferedImage background) {
         this.theme = Objects.requireNonNull(theme, "theme");
         this.layout = theme.getEnderChestLayout();
         this.background = Objects.requireNonNull(background, "background");

@@ -22,8 +22,9 @@ class OfficialCompatibilityHostTest {
             .map(RegisteredCommand::getCommand)
             .collect(Collectors.toCollection(LinkedHashSet::new));
         assertEquals(new LinkedHashSet<String>(Arrays.asList(
-            "inventorytest", "invtest", "inventory", "inv", "背包",
-            "enderchest", "ec", "末影箱", "绑定", "解绑", "绑定列表", "设置主账号"
+            "inventorytest", "invtest", "inventory", "inv", "我的背包", "背包查看",
+            "enderchest", "ec", "我的末影箱", "末影箱查看",
+            "绑定", "解绑", "绑定列表", "设置主账号"
         )), actual);
     }
 }

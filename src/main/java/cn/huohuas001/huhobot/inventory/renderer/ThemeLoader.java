@@ -4,11 +4,9 @@ import cn.huohuas001.huhobot.inventory.asset.VanillaImportedAssetProvider;
 import cn.huohuas001.huhobot.inventory.model.SlotType;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import javax.imageio.ImageIO;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -64,7 +62,6 @@ public final class ThemeLoader {
             );
         }
 
-        Path backgroundPath = safeResolve(root, requireText(descriptor.getString("background"), "theme.background"));
         Path layoutPath = safeResolve(root, requireText(descriptor.getString("layout"), "theme.layout"));
         Path textureDirectory = safeResolve(
             root,
@@ -94,13 +91,9 @@ public final class ThemeLoader {
         );
 
         Layout layout = loadLayout(layoutPath);
-        BufferedImage background = readImage(backgroundPath, "background");
-        if (background.getWidth() != layout.getWidth() || background.getHeight() != layout.getHeight()) {
-            throw new IllegalArgumentException(
-                "Background dimensions " + background.getWidth() + "x" + background.getHeight() +
-                    " do not match layout canvas " + layout.getWidth() + "x" + layout.getHeight()
-            );
-        }
+        BufferedImage background = new BufferedImage(
+            layout.getWidth(), layout.getHeight(), BufferedImage.TYPE_INT_ARGB
+        );
         TextureResolver textures = new TextureResolver(
             customOverrideDirectory,
             overrideDirectory,
@@ -255,14 +248,4 @@ public final class ThemeLoader {
         return resolved;
     }
 
-    private static BufferedImage readImage(Path path, String label) {
-        if (!Files.isRegularFile(path)) throw new IllegalArgumentException("Missing " + label + ": " + path);
-        try {
-            BufferedImage image = ImageIO.read(path.toFile());
-            if (image == null) throw new IllegalArgumentException("Unreadable " + label + ": " + path);
-            return image;
-        } catch (IOException error) {
-            throw new IllegalArgumentException("Could not read " + label + ": " + path, error);
-        }
-    }
 }

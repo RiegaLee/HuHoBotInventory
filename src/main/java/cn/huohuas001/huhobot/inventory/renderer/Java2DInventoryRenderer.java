@@ -34,9 +34,21 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
     private static final Color SHADOW = new Color(0, 0, 0, 210);
 
     private final Theme theme;
+    private final BufferedImage background;
 
     public Java2DInventoryRenderer(Theme theme) {
+        this(theme, Objects.requireNonNull(theme, "theme").getBackground());
+    }
+
+    public Java2DInventoryRenderer(Theme theme, BufferedImage background) {
         this.theme = Objects.requireNonNull(theme, "theme");
+        this.background = Objects.requireNonNull(background, "background");
+        Layout layout = theme.getLayout();
+        if (background.getWidth() != layout.getWidth() || background.getHeight() != layout.getHeight()) {
+            throw new IllegalArgumentException(
+                "Inventory background must be " + layout.getWidth() + "x" + layout.getHeight()
+            );
+        }
     }
 
     @Override
@@ -61,7 +73,7 @@ public final class Java2DInventoryRenderer implements InventoryRenderer {
         Graphics2D graphics = canvas.createGraphics();
         try {
             configure(graphics, theme);
-            graphics.drawImage(theme.getBackground(), 0, 0, null);
+            graphics.drawImage(background, 0, 0, null);
             drawPlayerPreview(graphics, layout, playerPreview, theme.isDrawPlayerPreviewMatte());
             drawFreshness(graphics, layout, metadata);
             if (theme.isDrawTitle()) drawTitle(graphics, layout, snapshot);

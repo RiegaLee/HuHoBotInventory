@@ -95,7 +95,7 @@ class InventoryAddonSessionTest {
 
         session.close();
         session.close();
-        assertEquals(2, service.context.closedRegistrations.get());
+        assertEquals(3, service.context.closedRegistrations.get());
         assertEquals(1, service.context.closeCount.get());
     }
 
@@ -189,8 +189,8 @@ class InventoryAddonSessionTest {
             snapshot -> new RenderResult(new byte[] {9, 8, 7}, "image/png", 704, 664)
         );
         try {
-            CommandResult result = service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "Steve", PrincipalRole.ADMIN))
+            CommandResult result = service.context.handler("背包查看")
+                .handle(commandContext(service.context.gateway, "背包查看", "Steve", PrincipalRole.ADMIN))
                 .toCompletableFuture()
                 .get();
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
@@ -227,8 +227,8 @@ class InventoryAddonSessionTest {
             null
         );
         try {
-            CommandResult result = service.context.handler("enderchest")
-                .handle(commandContext(service.context.gateway, "enderchest", "Steve", PrincipalRole.ADMIN))
+            CommandResult result = service.context.handler("末影箱查看")
+                .handle(commandContext(service.context.gateway, "末影箱查看", "Steve", PrincipalRole.ADMIN))
                 .toCompletableFuture().get();
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
             assertEquals("Steve", requestedPlayer.get());
@@ -238,7 +238,7 @@ class InventoryAddonSessionTest {
         } finally {
             session.close();
         }
-        assertEquals(3, service.context.closedRegistrations.get());
+        assertEquals(5, service.context.closedRegistrations.get());
     }
 
     @Test
@@ -283,23 +283,23 @@ class InventoryAddonSessionTest {
         );
         try {
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
-            assertTrue(service.context.gateway.lastText.contains("/背包 1（Steve）"));
-            assertTrue(service.context.gateway.lastText.contains("/背包 2（Alex）"));
+            assertTrue(service.context.gateway.lastText.contains("/我的背包 1（Steve）"));
+            assertTrue(service.context.gateway.lastText.contains("/我的背包 2（Alex）"));
             assertEquals(null, requestedPlayer.get());
 
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "2", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "2", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("Alex", requestedPlayer.get());
             assertNotNull(service.context.gateway.lastImage);
 
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "1", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "1", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertTrue(service.context.gateway.lastText.contains("账号选择已失效"));
-            assertTrue(service.context.gateway.lastText.contains("/背包 获取账号列表"));
+            assertTrue(service.context.gateway.lastText.contains("/我的背包 获取账号列表"));
         } finally {
             session.close();
         }
@@ -321,7 +321,7 @@ class InventoryAddonSessionTest {
         );
         try {
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("请选择账号（60 秒内有效）：", buttons.lastMarkdown);
             assertEquals("1 abcdefghijklmnop", buttons.lastButtons.get(0).getLabel());
@@ -340,20 +340,20 @@ class InventoryAddonSessionTest {
             assertEquals(InventoryButtonResult.DUPLICATE, buttons.handle(data, click));
 
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             String staleData = buttons.lastButtons.get(0).getData();
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             InventoryButtonInteraction staleClick = new InventoryButtonInteraction(
                 "interaction-stale", "group-open-id", "openid", staleData
             );
             assertEquals(InventoryButtonResult.EXPIRED_INVENTORY, buttons.handle(staleData, staleClick));
-            assertEquals("账号选择已超时，请重新发送 /背包。", service.context.gateway.lastText);
+            assertEquals("账号选择已超时，请重新发送 /我的背包。", service.context.gateway.lastText);
 
             service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "背包", "", PrincipalRole.MEMBER))
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             String protectedData = buttons.lastButtons.get(0).getData();
             InventoryButtonInteraction foreignClick = new InventoryButtonInteraction(
@@ -408,10 +408,10 @@ class InventoryAddonSessionTest {
             service.context.handler("inventory")
                 .handle(commandContext(service.context.gateway, "inventory", "Steve", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
-            assertEquals("权限不足，无法查询在线玩家背包。", service.context.gateway.lastText);
+            assertEquals("用法：/我的背包 [账号序号]", service.context.gateway.lastText);
 
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "Steve", PrincipalRole.ADMIN))
+            service.context.handler("背包查看")
+                .handle(commandContext(service.context.gateway, "背包查看", "Steve", PrincipalRole.ADMIN))
                 .toCompletableFuture().get();
             assertEquals("玩家当前不在线，暂时无法查询背包。", service.context.gateway.lastText);
             assertEquals(0, service.context.logger.errors.get());
@@ -672,11 +672,11 @@ class InventoryAddonSessionTest {
             fakeRenderer()
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "Steve", PrincipalRole.ADMIN))
+            service.context.handler("背包查看")
+                .handle(commandContext(service.context.gateway, "背包查看", "Steve", PrincipalRole.ADMIN))
                 .toCompletableFuture().get();
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "Alex", PrincipalRole.ADMIN))
+            service.context.handler("背包查看")
+                .handle(commandContext(service.context.gateway, "背包查看", "Alex", PrincipalRole.ADMIN))
                 .toCompletableFuture().get();
 
             assertEquals(1, sourceCalls.get());
@@ -774,10 +774,10 @@ class InventoryAddonSessionTest {
         yaml.set("command.aliases", Collections.singletonList("invtest"));
         yaml.set("command.publish-to-menu", false);
         yaml.set("online-command.name", "inventory");
-        yaml.set("online-command.aliases", java.util.Arrays.asList("inv", "背包"));
+        yaml.set("online-command.aliases", java.util.Arrays.asList("inv", "我的背包"));
         yaml.set("online-command.publish-to-menu", false);
         yaml.set("ender-chest-command.name", "enderchest");
-        yaml.set("ender-chest-command.aliases", java.util.Arrays.asList("ec", "末影箱"));
+        yaml.set("ender-chest-command.aliases", java.util.Arrays.asList("ec", "我的末影箱"));
         yaml.set("ender-chest-command.publish-to-menu", false);
         yaml.set("mock.player-name", "MockPlayer");
         yaml.set("mock.source-server", "test");
@@ -806,12 +806,12 @@ class InventoryAddonSessionTest {
         yaml.set("player-preview.allow-texture-downloads", false);
         yaml.set("player-preview.connect-timeout-ms", 4000);
         yaml.set("player-preview.read-timeout-ms", 8000);
-        yaml.set("render.theme", "default");
+        yaml.set("render.theme", "faithful32x");
         yaml.set("render.max-output-bytes", 4 * 1024 * 1024);
         yaml.set("render.image-file-name", "mock-inventory.png");
         yaml.set("render.optional-caption", "Mock inventory: %player%");
         yaml.set("messages.failure", "背包图片生成或发送失败，请稍后再试");
-        yaml.set("messages.usage", "用法：/背包，管理员可使用 /背包 <在线玩家名>");
+        yaml.set("messages.usage", "用法：/我的背包 [账号序号]");
         yaml.set("messages.player-offline", "玩家当前不在线，暂时无法查询背包。");
         yaml.set("messages.player-state-changed", "玩家状态发生变化，请重新查询。");
         yaml.set("messages.not-authorized", "权限不足，无法查询在线玩家背包。");
@@ -821,7 +821,7 @@ class InventoryAddonSessionTest {
         yaml.set("messages.offline-snapshot-missing", "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。");
         yaml.set("messages.offline-legacy-denied", "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。");
         yaml.set("messages.ender-chest-failure", "末影箱图片生成或发送失败，请稍后再试。");
-        yaml.set("messages.ender-chest-usage", "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>");
+        yaml.set("messages.ender-chest-usage", "用法：/我的末影箱 [账号序号]");
         yaml.set("messages.ender-chest-player-offline", "玩家当前不在线，且暂时没有可用的末影箱快照。");
         yaml.set("messages.ender-chest-player-state-changed", "玩家状态发生变化，请重新查询末影箱。");
         yaml.set("messages.ender-chest-not-authorized", "权限不足，无法查询其他玩家的末影箱。");
@@ -938,12 +938,18 @@ class InventoryAddonSessionTest {
                     assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
                 } else if ("inventory".equals(spec.getId())) {
                     assertEquals("inventory", spec.getId());
-                    assertEquals(java.util.Arrays.asList("inv", "背包"), spec.getAliases());
+                    assertEquals(java.util.Arrays.asList("inv", "我的背包"), spec.getAliases());
+                    assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
+                } else if ("enderchest".equals(spec.getId())) {
+                    assertEquals("enderchest", spec.getId());
+                    assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), spec.getAliases());
                     assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
                 } else {
-                    assertEquals("enderchest", spec.getId());
-                    assertEquals(java.util.Arrays.asList("ec", "末影箱"), spec.getAliases());
-                    assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
+                    assertTrue(
+                        "背包查看".equals(spec.getId()) || "末影箱查看".equals(spec.getId())
+                    );
+                    assertTrue(spec.getAliases().isEmpty());
+                    assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ADMIN, spec.getPermission());
                 }
                 handlers.put(spec.getId(), value);
                 return new FakeRegistration(closedRegistrations);

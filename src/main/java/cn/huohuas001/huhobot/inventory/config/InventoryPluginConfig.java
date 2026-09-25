@@ -12,7 +12,7 @@ import java.util.Set;
 
 /** Validated configuration owned exclusively by the Inventory addon. */
 public final class InventoryPluginConfig {
-    public static final int CURRENT_VERSION = 10;
+    public static final int CURRENT_VERSION = 12;
 
     private final boolean debugEnabled;
     private final String commandName;
@@ -196,6 +196,11 @@ public final class InventoryPluginConfig {
         this.offlineEnderChestPeriodicSaveSeconds = offlineEnderChestPeriodicSaveSeconds;
 
         this.themeId = requireSafeName(themeId, "render.theme");
+        if (!"faithful32x".equals(this.themeId)) {
+            throw new IllegalArgumentException(
+                "render.theme no longer selects UI backgrounds; only faithful32x item assets are supported"
+            );
+        }
         this.vanillaAssetsEnabled = vanillaAssetsEnabled;
         this.vanillaCacheDirectory = requirePathText(vanillaCacheDirectory, "assets.vanilla.cache-directory");
         this.vanillaMinecraftJar = normalizeOptional(vanillaMinecraftJar);
@@ -283,13 +288,13 @@ public final class InventoryPluginConfig {
         }
         if (version == 1) {
             setIfMissing(config, "online-command.name", "inventory");
-            setIfMissing(config, "online-command.aliases", java.util.Arrays.asList("inv", "背包"));
+            setIfMissing(config, "online-command.aliases", java.util.Arrays.asList("inv", "我的背包"));
             setIfMissing(config, "online-command.publish-to-menu", false);
             setIfMissing(config, "online.source-server", "local-paper");
             setIfMissing(config, "online.cooldown-seconds", 3);
             setIfMissing(config, "online.image-file-name", "inventory.png");
             setIfMissing(config, "online.optional-caption", "Inventory: %player%");
-            setIfMissing(config, "messages.usage", "用法：/背包，管理员可使用 /背包 <在线玩家名>");
+            setIfMissing(config, "messages.usage", "用法：/我的背包 [账号序号]");
             setIfMissing(config, "messages.player-offline", "玩家当前不在线，暂时无法查询背包。");
             setIfMissing(config, "messages.player-state-changed", "玩家状态发生变化，请重新查询。");
             setIfMissing(config, "messages.not-authorized", "权限不足，无法查询在线玩家背包。");
@@ -329,7 +334,7 @@ public final class InventoryPluginConfig {
             "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。"
         );
         setIfMissing(config, "ender-chest-command.name", "enderchest");
-        setIfMissing(config, "ender-chest-command.aliases", java.util.Arrays.asList("ec", "末影箱"));
+        setIfMissing(config, "ender-chest-command.aliases", java.util.Arrays.asList("ec", "我的末影箱"));
         setIfMissing(config, "ender-chest-command.publish-to-menu", false);
         setIfMissing(config, "ender-chest.enabled", true);
         setIfMissing(config, "ender-chest.source-server", "local-paper");
@@ -341,7 +346,7 @@ public final class InventoryPluginConfig {
         setIfMissing(config, "offline-ender-chest.directory", "data/offline-ender-chest-snapshots");
         setIfMissing(config, "offline-ender-chest.periodic-save-seconds", 300);
         setIfMissing(config, "messages.ender-chest-failure", "末影箱图片生成或发送失败，请稍后再试。");
-        setIfMissing(config, "messages.ender-chest-usage", "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>");
+        setIfMissing(config, "messages.ender-chest-usage", "用法：/我的末影箱 [账号序号]");
         setIfMissing(config, "messages.ender-chest-player-offline", "玩家当前不在线，且暂时没有可用的末影箱快照。");
         setIfMissing(config, "messages.ender-chest-player-state-changed", "玩家状态发生变化，请重新查询末影箱。");
         setIfMissing(config, "messages.ender-chest-not-authorized", "权限不足，无法查询其他玩家的末影箱。");
@@ -357,6 +362,27 @@ public final class InventoryPluginConfig {
         );
         setIfMissing(config, "debug", false);
         setIfMissing(config, "render.theme", "faithful32x");
+        setIfMissing(config, "render.custom-background.enabled", false);
+        setIfMissing(config, "render.custom-background.inventory-file", "inventory.png");
+        setIfMissing(config, "render.custom-background.ender-chest-file", "");
+        setIfMissing(config, "render.custom-background.fit", "cover");
+        if (version < 12) {
+            config.set("render.theme", "faithful32x");
+            replaceAlias(config, "online-command.aliases", "背包", "我的背包");
+            replaceAlias(config, "ender-chest-command.aliases", "末影箱", "我的末影箱");
+            replaceExact(
+                config,
+                "messages.usage",
+                "用法：/背包，管理员可使用 /背包 <在线玩家名>",
+                "用法：/我的背包 [账号序号]"
+            );
+            replaceExact(
+                config,
+                "messages.ender-chest-usage",
+                "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>",
+                "用法：/我的末影箱 [账号序号]"
+            );
+        }
         config.set("config-version", CURRENT_VERSION);
         return true;
     }
@@ -416,7 +442,7 @@ public final class InventoryPluginConfig {
             config.getString("ender-chest.image-file-name", "ender-chest.png"),
             config.getString("ender-chest.optional-caption", "Ender Chest: %player%"),
             config.getString("messages.failure", "背包图片生成或发送失败，请稍后再试"),
-            config.getString("messages.usage", "用法：/背包，管理员可使用 /背包 <在线玩家名>"),
+            config.getString("messages.usage", "用法：/我的背包 [账号序号]"),
             config.getString("messages.player-offline", "玩家当前不在线，暂时无法查询背包。"),
             config.getString("messages.player-state-changed", "玩家状态发生变化，请重新查询。"),
             config.getString("messages.not-authorized", "权限不足，无法查询在线玩家背包。"),
@@ -438,7 +464,7 @@ public final class InventoryPluginConfig {
                 "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。"
             ),
             config.getString("messages.ender-chest-failure", "末影箱图片生成或发送失败，请稍后再试。"),
-            config.getString("messages.ender-chest-usage", "用法：/末影箱，管理员可使用 /末影箱 <在线玩家名>"),
+            config.getString("messages.ender-chest-usage", "用法：/我的末影箱 [账号序号]"),
             config.getString(
                 "messages.ender-chest-player-offline",
                 "玩家当前不在线，且暂时没有可用的末影箱快照。"
@@ -494,6 +520,23 @@ public final class InventoryPluginConfig {
 
     private static void setIfMissing(FileConfiguration config, String path, Object value) {
         if (!config.contains(path, true)) config.set(path, value);
+    }
+
+    private static void replaceAlias(FileConfiguration config, String path, String oldAlias, String newAlias) {
+        List<String> current = config.getStringList(path);
+        if (current.isEmpty() || !current.contains(oldAlias)) return;
+        List<String> migrated = new ArrayList<String>(current.size());
+        for (String alias : current) migrated.add(oldAlias.equals(alias) ? newAlias : alias);
+        config.set(path, migrated);
+    }
+
+    private static void replaceExact(
+        FileConfiguration config,
+        String path,
+        String oldValue,
+        String newValue
+    ) {
+        if (oldValue.equals(config.getString(path))) config.set(path, newValue);
     }
 
     private static String normalizeCommand(String value, String field) {

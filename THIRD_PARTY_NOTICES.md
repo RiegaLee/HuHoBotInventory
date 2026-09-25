@@ -4,7 +4,7 @@ HuHoBot Inventory 的原创源代码和默认主题原创资源采用仓库根�
 
 ## Faithful 32x
 
-`faithful32x` 主题包含或转换了少量 Faithful 32x 资源，用于背包界面、物品、盔甲和末影箱图片渲染。
+`faithful32x` 资源包包含或转换了少量 Faithful 32x 资源，用于物品、特殊物品、头颅和盔甲渲染；1.24.0 起不再使用 Faithful 背包或末影箱底板。
 
 - 项目网站：https://faithfulpack.net/
 - 许可证：[THIRD_PARTY_LICENSES/Faithful-LICENSE.txt](THIRD_PARTY_LICENSES/Faithful-LICENSE.txt)
@@ -14,7 +14,7 @@ HuHoBot Inventory 的原创源代码和默认主题原创资源采用仓库根�
 
 ## CozyUI+
 
-可选的 `cozyui-plus` 主题使用并修改了 CozyUI+ 的背包和末影箱界面资源。
+仓库历史素材目录中的 `cozyui-plus` 使用并修改了 CozyUI+ 的背包和末影箱界面资源；1.24.0 起该主题不再进入运行时资源包，也不能在配置中启用。
 这是非官方兼容主题，不是 CozyUI+ 官方续作，也不将原作者的界面设计声明为
 HuHoBot Inventory 的原创作品。
 

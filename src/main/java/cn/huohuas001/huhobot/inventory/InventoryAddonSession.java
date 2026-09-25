@@ -138,7 +138,7 @@ final class InventoryAddonSession implements AutoCloseable {
         }
 
         PluginContext context = service.openPlugin(descriptor);
-        List<Registration> registrations = new ArrayList<Registration>(5);
+        List<Registration> registrations = new ArrayList<Registration>(7);
         try {
             CommandSpec mockSpec = new CommandSpec(
                 config.getCommandName(),
@@ -173,6 +173,23 @@ final class InventoryAddonSession implements AutoCloseable {
                 buttonBridge
             );
             registrations.add(context.getCommands().register(onlineSpec, onlineHandler));
+            CommandSpec adminOnlineSpec = new CommandSpec(
+                "背包查看",
+                Collections.emptyList(),
+                "管理员查询指定在线玩家的背包图片",
+                CommandPermission.ADMIN,
+                false
+            );
+            registrations.add(context.getCommands().register(
+                adminOnlineSpec,
+                InventoryCommand.adminOnline(
+                    onlineDataSource,
+                    renderer,
+                    config,
+                    context.getLogger(),
+                    previewService
+                )
+            ));
             if (buttonBridge.isAvailable()) {
                 registrations.add(buttonBridge.register(
                     onlineHandler.getButtonDataPrefix(),
@@ -200,6 +217,22 @@ final class InventoryAddonSession implements AutoCloseable {
                     buttonBridge
                 );
                 registrations.add(context.getCommands().register(enderChestSpec, enderChestHandler));
+                CommandSpec adminEnderChestSpec = new CommandSpec(
+                    "末影箱查看",
+                    Collections.emptyList(),
+                    "管理员查询指定在线玩家的末影箱图片",
+                    CommandPermission.ADMIN,
+                    false
+                );
+                registrations.add(context.getCommands().register(
+                    adminEnderChestSpec,
+                    InventoryCommand.adminEnderChest(
+                        enderChestDataSource,
+                        enderChestRenderer,
+                        config,
+                        context.getLogger()
+                    )
+                ));
                 if (buttonBridge.isAvailable()) {
                     registrations.add(buttonBridge.register(
                         enderChestHandler.getButtonDataPrefix(),
