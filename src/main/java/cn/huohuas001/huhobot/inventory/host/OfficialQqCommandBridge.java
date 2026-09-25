@@ -172,18 +172,6 @@ final class OfficialQqCommandBridge implements AutoCloseable {
         @Commands(command = "末影箱查看", describe = "管理员查询在线玩家末影箱")
         public void enderChestAdmin(GroupMessageEvent event, String ignored) { route(event); }
 
-        @Commands(command = "绑定", describe = "绑定 Minecraft 账号")
-        public void bind(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "解绑", describe = "解除 Minecraft 账号绑定")
-        public void unbind(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "绑定列表", describe = "查看 Minecraft 账号绑定")
-        public void bindingList(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "设置主账号", describe = "设置默认查询账号")
-        public void primary(GroupMessageEvent event, String ignored) { route(event); }
-
         private void route(GroupMessageEvent event) {
             try {
                 if (!service.route(snapshot(event))) {
