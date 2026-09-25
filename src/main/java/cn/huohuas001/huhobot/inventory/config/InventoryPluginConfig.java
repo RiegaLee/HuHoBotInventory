@@ -12,7 +12,7 @@ import java.util.Set;
 
 /** Validated configuration owned exclusively by the Inventory addon. */
 public final class InventoryPluginConfig {
-    public static final int CURRENT_VERSION = 13;
+    public static final int CURRENT_VERSION = 14;
 
     private final boolean debugEnabled;
     private final String commandName;
@@ -385,6 +385,24 @@ public final class InventoryPluginConfig {
                 "用法：/我的末影箱 [账号序号]"
             );
         }
+        if (version < 14) {
+            // Test commands and English aliases were previously public QQ commands. They are no
+            // longer registered; keep only the two user-facing Chinese self-query commands.
+            config.set("command", null);
+            config.set("mock", null);
+            config.set("render.image-file-name", null);
+            config.set("render.optional-caption", null);
+            config.set("online-command.name", "我的背包");
+            config.set("online-command.aliases", Collections.emptyList());
+            config.set("ender-chest-command.name", "我的末影箱");
+            config.set("ender-chest-command.aliases", Collections.emptyList());
+            replaceExact(
+                config,
+                "messages.binding-required",
+                "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。",
+                "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。"
+            );
+        }
         config.set("config-version", CURRENT_VERSION);
         return true;
     }
@@ -402,11 +420,11 @@ public final class InventoryPluginConfig {
             config.getString("command.name", "inventorytest"),
             config.getStringList("command.aliases"),
             config.getBoolean("command.publish-to-menu", false),
-            config.getString("online-command.name", "inventory"),
+            config.getString("online-command.name", "我的背包"),
             config.getStringList("online-command.aliases"),
             config.getBoolean("online-command.publish-to-menu", false),
             config.getBoolean("ender-chest.enabled", true),
-            config.getString("ender-chest-command.name", "enderchest"),
+            config.getString("ender-chest-command.name", "我的末影箱"),
             config.getStringList("ender-chest-command.aliases"),
             config.getBoolean("ender-chest-command.publish-to-menu", false),
             config.getString("mock.player-name", "MockPlayer"),
@@ -451,7 +469,7 @@ public final class InventoryPluginConfig {
             config.getString("messages.cooldown", "查询过于频繁，请稍后再试。"),
             config.getString(
                 "messages.binding-required",
-                "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。"
+                "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。"
             ),
             config.getString(
                 "messages.binding-verification-required",

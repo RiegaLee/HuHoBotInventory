@@ -19,12 +19,12 @@ class InventoryPluginConfigTest {
         assertTrue(InventoryPluginConfig.migrateFromVersion1(yaml));
         assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
         assertEquals(5, yaml.getInt("online.cooldown-seconds"));
-        assertEquals("inventory", yaml.getString("online-command.name"));
+        assertEquals("我的背包", yaml.getString("online-command.name"));
         assertEquals("inventory.png", yaml.getString("online.image-file-name"));
 
         InventoryPluginConfig config = InventoryPluginConfig.load(yaml);
         assertEquals("inventorytest", config.getCommandName());
-        assertEquals("inventory", config.getOnlineCommandName());
+        assertEquals("我的背包", config.getOnlineCommandName());
         assertEquals(5, config.getOnlineCooldownSeconds());
         assertEquals("Inventory: Steve", config.captionForOnline("Steve"));
         assertFalse(config.isVanillaAssetsEnabled());
@@ -39,15 +39,15 @@ class InventoryPluginConfigTest {
         assertFalse(config.isAllowLegacyOfflineSnapshots());
         assertEquals(300, config.getOfflinePeriodicSaveSeconds());
         assertTrue(config.isEnderChestEnabled());
-        assertEquals("enderchest", config.getEnderChestCommandName());
-        assertTrue(config.getEnderChestCommandAliases().contains("我的末影箱"));
+        assertEquals("我的末影箱", config.getEnderChestCommandName());
+        assertTrue(config.getEnderChestCommandAliases().isEmpty());
         assertEquals("local-paper", config.getEnderChestSourceServer());
         assertEquals("ender-chest.png", config.getEnderChestImageFileName());
         assertTrue(config.isOfflineEnderChestEnabled());
         assertFalse(config.isDebugEnabled());
         assertEquals("data/offline-ender-chest-snapshots", config.getOfflineEnderChestSnapshotDirectory());
         assertEquals(
-            "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。",
+            "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。",
             config.getBindingRequiredMessage()
         );
         assertFalse(InventoryPluginConfig.migrateFromVersion1(yaml));
@@ -89,7 +89,7 @@ class InventoryPluginConfigTest {
     void rejectsCommandConflictsAndUnsafeCooldown() {
         YamlConfiguration conflict = phaseOneConfig();
         InventoryPluginConfig.migrateFromVersion1(conflict);
-        conflict.set("online-command.name", "invtest");
+        conflict.set("ender-chest-command.name", "我的背包");
         assertThrows(IllegalArgumentException.class, () -> InventoryPluginConfig.load(conflict));
 
         YamlConfiguration cooldown = phaseOneConfig();
@@ -144,8 +144,8 @@ class InventoryPluginConfigTest {
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
         assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
-        assertEquals("enderchest", yaml.getString("ender-chest-command.name"));
-        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals("我的末影箱", yaml.getString("ender-chest-command.name"));
+        assertTrue(yaml.getStringList("ender-chest-command.aliases").isEmpty());
         assertEquals("data/offline-ender-chest-snapshots", yaml.getString("offline-ender-chest.directory"));
         assertEquals("末影箱图片生成或发送失败，请稍后再试。", yaml.getString("messages.ender-chest-failure"));
         assertTrue(InventoryPluginConfig.load(yaml).isEnderChestEnabled());
@@ -177,8 +177,10 @@ class InventoryPluginConfigTest {
         assertEquals("inventory.png", yaml.getString("render.custom-background.inventory-file"));
         assertEquals("", yaml.getString("render.custom-background.ender-chest-file"));
         assertEquals("cover", yaml.getString("render.custom-background.fit"));
-        assertEquals(java.util.Arrays.asList("inv", "我的背包"), yaml.getStringList("online-command.aliases"));
-        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals("我的背包", yaml.getString("online-command.name"));
+        assertTrue(yaml.getStringList("online-command.aliases").isEmpty());
+        assertEquals("我的末影箱", yaml.getString("ender-chest-command.name"));
+        assertTrue(yaml.getStringList("ender-chest-command.aliases").isEmpty());
         assertEquals("faithful32x", InventoryPluginConfig.load(yaml).getThemeId());
     }
 
@@ -195,8 +197,10 @@ class InventoryPluginConfigTest {
 
         assertTrue(InventoryPluginConfig.migrateToCurrent(yaml));
         assertEquals(InventoryPluginConfig.CURRENT_VERSION, yaml.getInt("config-version"));
-        assertEquals(java.util.Arrays.asList("inv", "我的背包"), yaml.getStringList("online-command.aliases"));
-        assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), yaml.getStringList("ender-chest-command.aliases"));
+        assertEquals("我的背包", yaml.getString("online-command.name"));
+        assertTrue(yaml.getStringList("online-command.aliases").isEmpty());
+        assertEquals("我的末影箱", yaml.getString("ender-chest-command.name"));
+        assertTrue(yaml.getStringList("ender-chest-command.aliases").isEmpty());
         assertEquals("用法：/我的背包 [账号序号]", yaml.getString("messages.usage"));
         assertEquals("用法：/我的末影箱 [账号序号]", yaml.getString("messages.ender-chest-usage"));
         assertEquals("faithful32x", yaml.getString("render.theme"));

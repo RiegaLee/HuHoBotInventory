@@ -160,29 +160,11 @@ final class OfficialQqCommandBridge implements AutoCloseable {
             this.plugin = plugin;
         }
 
-        @Commands(command = "inventorytest", describe = "测试背包渲染")
-        public void inventoryTest(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "invtest", describe = "测试背包渲染")
-        public void inventoryTestAlias(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "inventory", describe = "查询我的背包")
-        public void inventory(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "inv", describe = "查询我的背包")
-        public void inventoryAlias(GroupMessageEvent event, String ignored) { route(event); }
-
         @Commands(command = "我的背包", describe = "查询我的背包")
         public void inventoryChinese(GroupMessageEvent event, String ignored) { route(event); }
 
         @Commands(command = "背包查看", describe = "管理员查询在线玩家背包")
         public void inventoryAdmin(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "enderchest", describe = "查询我的末影箱")
-        public void enderChest(GroupMessageEvent event, String ignored) { route(event); }
-
-        @Commands(command = "ec", describe = "查询我的末影箱")
-        public void enderChestAlias(GroupMessageEvent event, String ignored) { route(event); }
 
         @Commands(command = "我的末影箱", describe = "查询我的末影箱")
         public void enderChestChinese(GroupMessageEvent event, String ignored) { route(event); }

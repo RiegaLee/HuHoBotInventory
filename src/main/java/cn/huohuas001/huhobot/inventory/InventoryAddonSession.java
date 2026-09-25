@@ -1,6 +1,7 @@
 package cn.huohuas001.huhobot.inventory;
 
 import cn.huohuas001.huhobot.api.ApiVersion;
+import cn.huohuas001.huhobot.api.BindingService;
 import cn.huohuas001.huhobot.api.Capability;
 import cn.huohuas001.huhobot.api.CommandPermission;
 import cn.huohuas001.huhobot.api.CommandSpec;
@@ -132,6 +133,31 @@ final class InventoryAddonSession implements AutoCloseable {
         OfflineInventoryDataSource offlineEnderChestPlayerDataSource,
         InventoryButtonBridge buttonBridge
     ) {
+        return start(
+            service, descriptor, config, mockDataSource, onlineDataSource, renderer,
+            previewService, offlineStore, offlinePlayerDataSource, enderChestDataSource,
+            enderChestRenderer, offlineEnderChestStore, offlineEnderChestPlayerDataSource,
+            buttonBridge, null
+        );
+    }
+
+    static InventoryAddonSession start(
+        HuHoBotService service,
+        PluginDescriptor descriptor,
+        InventoryPluginConfig config,
+        InventoryDataSource mockDataSource,
+        InventoryDataSource onlineDataSource,
+        InventoryRenderer renderer,
+        PlayerPreviewService previewService,
+        OfflineInventorySnapshotStore offlineStore,
+        OfflineInventoryDataSource offlinePlayerDataSource,
+        InventoryDataSource enderChestDataSource,
+        InventoryRenderer enderChestRenderer,
+        OfflineInventorySnapshotStore offlineEnderChestStore,
+        OfflineInventoryDataSource offlineEnderChestPlayerDataSource,
+        InventoryButtonBridge buttonBridge,
+        BindingService externalBindings
+    ) {
         Objects.requireNonNull(service, "service");
         Objects.requireNonNull(descriptor, "descriptor");
         Objects.requireNonNull(config, "config");
@@ -162,23 +188,9 @@ final class InventoryAddonSession implements AutoCloseable {
         }
 
         PluginContext context = service.openPlugin(descriptor);
+        BindingService bindings = externalBindings == null ? context.getBindings() : externalBindings;
         List<Registration> registrations = new ArrayList<Registration>(7);
         try {
-            CommandSpec mockSpec = new CommandSpec(
-                config.getCommandName(),
-                config.getCommandAliases(),
-                "生成稳定的 Minecraft 模拟背包 PNG",
-                CommandPermission.ANY,
-                config.isPublishToMenu()
-            );
-            InventoryCommand mockHandler = new InventoryCommand(
-                mockDataSource,
-                renderer,
-                config,
-                context.getLogger()
-            );
-            registrations.add(context.getCommands().register(mockSpec, mockHandler));
-
             CommandSpec onlineSpec = new CommandSpec(
                 config.getOnlineCommandName(),
                 config.getOnlineCommandAliases(),
@@ -190,7 +202,7 @@ final class InventoryAddonSession implements AutoCloseable {
                 onlineDataSource,
                 renderer,
                 config,
-                context.getBindings(),
+                bindings,
                 context.getLogger(),
                 previewService,
                 offlineStore,
@@ -236,7 +248,7 @@ final class InventoryAddonSession implements AutoCloseable {
                     enderChestDataSource,
                     enderChestRenderer,
                     config,
-                    context.getBindings(),
+                    bindings,
                     context.getLogger(),
                     offlineEnderChestStore,
                     offlineEnderChestPlayerDataSource,

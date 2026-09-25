@@ -1,31 +1,17 @@
-config-version: 13
+config-version: 14
 
 # 仅排查问题时开启；关闭时普通查询不输出调试日志。
 debug: false
 
-command:
-  name: inventorytest
-  aliases:
-    - invtest
-  publish-to-menu: false
-
 online-command:
-  name: inventory
-  aliases:
-    - inv
-    - 我的背包
+  name: 我的背包
+  aliases: []
   publish-to-menu: false
 
 ender-chest-command:
-  name: enderchest
-  aliases:
-    - ec
-    - 我的末影箱
+  name: 我的末影箱
+  aliases: []
   publish-to-menu: false
-
-mock:
-  player-name: MockPlayer
-  source-server: mock-paper
 
 online:
   source-server: local-paper
@@ -93,8 +79,6 @@ render:
     # cover 保持比例并居中裁切；stretch 拉伸到整个画布。
     fit: cover
   max-output-bytes: 4194304
-  image-file-name: mock-inventory.png
-  optional-caption: "Mock inventory: %player%"
 
 messages:
   failure: "背包图片生成或发送失败，请稍后再试"
@@ -103,7 +87,7 @@ messages:
   player-state-changed: "玩家状态发生变化，请重新查询。"
   not-authorized: "权限不足，无法查询在线玩家背包。"
   cooldown: "查询过于频繁，请稍后再试。"
-  binding-required: "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。"
+  binding-required: "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。"
   binding-verification-required: "当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。"
   offline-snapshot-missing: "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。"
   offline-legacy-denied: "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。"

@@ -12,7 +12,6 @@ import cn.huohuas001.huhobot.inventory.config.InventoryPluginConfig;
 import cn.huohuas001.huhobot.inventory.host.EmbeddedHuHoBotHost;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.BukkitOnlineEnderChestDataSource;
-import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.datasource.OfflineInventoryDataSourceFactory;
 import cn.huohuas001.huhobot.inventory.datasource.SkinsRestorerHeadTextureResolver;
@@ -53,7 +52,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-/** Independent Bukkit addon for Mock and exact online-player inventory PNG delivery. */
+/** Independent Bukkit addon for binding-aware inventory and Ender Chest PNG delivery. */
 public final class MinecraftInventoryPlugin extends JavaPlugin {
     private InventoryAddonSession session;
     private OfflineInventorySnapshotManager snapshotManager;
@@ -301,7 +300,7 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 hostService,
                 descriptor,
                 config,
-                new MockInventoryDataSource(config.getMockSourceServer()),
+                onlineSource,
                 onlineSource,
                 inventoryRenderer,
                 previewService,
@@ -311,11 +310,12 @@ public final class MinecraftInventoryPlugin extends JavaPlugin {
                 enderChestRenderer,
                 enderChestSnapshotStore,
                 offlineEnderChestPlayerDataSource,
-                buttonBridge
+                buttonBridge,
+                embeddedHost.getBindings()
             );
             getLogger().info(
-                "Registered /" + config.getCommandName() + " mock command and /" +
-                    config.getOnlineCommandName() + " [player] binding-aware online command through HuHoBot API " +
+                "Registered /" + config.getOnlineCommandName() +
+                    " binding-aware inventory command through HuHoBot API " +
                     hostService.getApiVersion()
             );
             if (config.isEnderChestEnabled()) {

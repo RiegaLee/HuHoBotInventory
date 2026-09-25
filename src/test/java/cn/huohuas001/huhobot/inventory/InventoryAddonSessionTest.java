@@ -83,20 +83,21 @@ class InventoryAddonSessionTest {
             new MockInventoryDataSource("online-test"),
             snapshot -> new RenderResult(new byte[] {1, 2, 3, 4}, "image/png", 704, 600)
         );
+        service.context.bind("group-open-id", "openid", "MockPlayer", BindingVerificationState.VERIFIED);
 
-        CommandResult result = service.context.handler("inventorytest").handle(commandContext(service.context.gateway))
+        CommandResult result = service.context.handler("我的背包").handle(commandContext(service.context.gateway))
             .toCompletableFuture().get();
         assertEquals(CommandResult.Status.HANDLED, result.getStatus());
         assertArrayEquals(new byte[] {1, 2, 3, 4}, service.context.gateway.lastImage);
         assertEquals("image/png", service.context.gateway.lastMimeType);
-        assertEquals("mock-inventory.png", service.context.gateway.lastFileName);
-        assertEquals("Mock inventory: MockPlayer", service.context.gateway.lastCaption);
+        assertEquals("inventory.png", service.context.gateway.lastFileName);
+        assertEquals("Inventory: MockPlayer", service.context.gateway.lastCaption);
         assertEquals(0, service.context.gateway.textReplies.get());
         assertEquals(0, service.context.logger.infos.get());
 
         session.close();
         session.close();
-        assertEquals(3, service.context.closedRegistrations.get());
+        assertEquals(2, service.context.closedRegistrations.get());
         assertEquals(1, service.context.closeCount.get());
     }
 
@@ -111,8 +112,9 @@ class InventoryAddonSessionTest {
             new MockInventoryDataSource("online-test"),
             fakeRenderer()
         );
+        service.context.bind("group-open-id", "openid", "MockPlayer", BindingVerificationState.VERIFIED);
         try {
-            CommandResult result = service.context.handler("inventorytest")
+            CommandResult result = service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway))
                 .toCompletableFuture().get();
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
@@ -134,8 +136,9 @@ class InventoryAddonSessionTest {
             new MockInventoryDataSource("online-test"),
             snapshot -> new RenderResult(new byte[] {1}, "image/png", 1, 1)
         );
+        sendFailure.context.bind("group-open-id", "openid", "MockPlayer", BindingVerificationState.VERIFIED);
         try {
-            CommandResult result = sendFailure.context.handler("inventorytest")
+            CommandResult result = sendFailure.context.handler("我的背包")
                 .handle(commandContext(sendFailure.context.gateway))
                 .toCompletableFuture().get();
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
@@ -155,12 +158,13 @@ class InventoryAddonSessionTest {
             sourceFailure,
             descriptor(),
             config(),
+            new MockInventoryDataSource("test"),
             brokenSource,
-            new MockInventoryDataSource("online-test"),
             snapshot -> new RenderResult(new byte[] {1}, "image/png", 1, 1)
         );
+        sourceFailure.context.bind("group-open-id", "openid", "MockPlayer", BindingVerificationState.VERIFIED);
         try {
-            CommandResult result = sourceFailure.context.handler("inventorytest")
+            CommandResult result = sourceFailure.context.handler("我的背包")
                 .handle(commandContext(sourceFailure.context.gateway))
                 .toCompletableFuture().get();
             assertEquals(CommandResult.Status.HANDLED, result.getStatus());
@@ -239,7 +243,7 @@ class InventoryAddonSessionTest {
         } finally {
             session.close();
         }
-        assertEquals(5, service.context.closedRegistrations.get());
+        assertEquals(4, service.context.closedRegistrations.get());
     }
 
     @Test
@@ -260,8 +264,49 @@ class InventoryAddonSessionTest {
             fakeRenderer()
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
+                .toCompletableFuture().get();
+            assertEquals("Steve", requestedPlayer.get());
+            assertNotNull(service.context.gateway.lastImage);
+        } finally {
+            session.close();
+        }
+    }
+
+    @Test
+    void externalGameAuthAuthorityOverridesStaleHostBindingLookup() throws Exception {
+        FakeService service = new FakeService(ApiVersion.CURRENT, allCapabilities());
+        AtomicReference<String> requestedPlayer = new AtomicReference<String>();
+        InventoryDataSource onlineSource = player -> {
+            requestedPlayer.set(player);
+            return CompletableFuture.completedFuture(
+                new MockInventoryDataSource("online-test").createSnapshot(player)
+            );
+        };
+        BindingService gameAuthBindings = new BindingService() {
+            @Override public Optional<PlayerBinding> findBinding(String groupId, String userId) {
+                List<PlayerBinding> values = findBindings(groupId, userId);
+                return values.isEmpty() ? Optional.<PlayerBinding>empty() : Optional.of(values.get(0));
+            }
+
+            @Override public List<PlayerBinding> findBindings(String groupId, String userId) {
+                if (!"group-open-id".equals(groupId) || !"openid".equals(userId)) {
+                    return Collections.emptyList();
+                }
+                return Collections.singletonList(new PlayerBinding(
+                    "Steve", null, BindingVerificationState.VERIFIED
+                ));
+            }
+        };
+        InventoryAddonSession session = InventoryAddonSession.start(
+            service, descriptor(), config(), new MockInventoryDataSource("unused"), onlineSource,
+            fakeRenderer(), null, null, null, null, null, null, null,
+            InventoryButtonBridge.UNAVAILABLE, gameAuthBindings
+        );
+        try {
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("Steve", requestedPlayer.get());
             assertNotNull(service.context.gateway.lastImage);
@@ -283,20 +328,20 @@ class InventoryAddonSessionTest {
             service, descriptor(), config(), new MockInventoryDataSource("mock-test"), onlineSource, fakeRenderer()
         );
         try {
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertTrue(service.context.gateway.lastText.contains("/我的背包 1（Steve）"));
             assertTrue(service.context.gateway.lastText.contains("/我的背包 2（Alex）"));
             assertEquals(null, requestedPlayer.get());
 
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "2", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("Alex", requestedPlayer.get());
             assertNotNull(service.context.gateway.lastImage);
 
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "1", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertTrue(service.context.gateway.lastText.contains("账号选择已失效"));
@@ -321,7 +366,7 @@ class InventoryAddonSessionTest {
             fakeRenderer(), null, null, null, null, null, buttons
         );
         try {
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("请选择账号（60 秒内有效）：", buttons.lastMarkdown);
@@ -340,11 +385,11 @@ class InventoryAddonSessionTest {
             assertNotNull(service.context.gateway.lastImage);
             assertEquals(InventoryButtonResult.DUPLICATE, buttons.handle(data, click));
 
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             String staleData = buttons.lastButtons.get(0).getData();
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             InventoryButtonInteraction staleClick = new InventoryButtonInteraction(
@@ -353,7 +398,7 @@ class InventoryAddonSessionTest {
             assertEquals(InventoryButtonResult.EXPIRED_INVENTORY, buttons.handle(staleData, staleClick));
             assertEquals("账号选择已超时，请重新发送 /我的背包。", service.context.gateway.lastText);
 
-            service.context.handler("inventory")
+            service.context.handler("我的背包")
                 .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             String protectedData = buttons.lastButtons.get(0).getData();
@@ -390,24 +435,24 @@ class InventoryAddonSessionTest {
             fakeRenderer()
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(
-                "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。",
+                "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。",
                 service.context.gateway.lastText
             );
 
             service.context.bind(
                 "group-open-id", "openid", "Steve", BindingVerificationState.LEGACY_UNVERIFIED
             );
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("玩家当前不在线，暂时无法查询背包。", service.context.gateway.lastText);
 
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "Steve", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "Steve", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("用法：/我的背包 [账号序号]", service.context.gateway.lastText);
 
@@ -465,15 +510,15 @@ class InventoryAddonSessionTest {
             service, descriptor(), config(), new MockInventoryDataSource("mock"), offline, renderer, null, store
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT, metadata.get().getFreshness());
             assertArrayEquals(new byte[] {4, 5, 6}, service.context.gateway.lastImage);
 
             onlineNow.set(true);
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(InventoryRenderMetadata.Freshness.REALTIME, metadata.get().getFreshness());
             assertEquals("realtime-test", renderedSnapshot.get().getSourceServer());
@@ -526,15 +571,15 @@ class InventoryAddonSessionTest {
             null, store, playerdata, null, null, null, null, InventoryButtonBridge.UNAVAILABLE
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("paper-playerdata", renderedSource.get());
             assertArrayEquals(new byte[] {3, 1, 4}, service.context.gateway.lastImage);
 
             playerdataAvailable.set(false);
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("yaml-fallback", renderedSource.get());
         } finally {
@@ -583,8 +628,8 @@ class InventoryAddonSessionTest {
             offlineEnder, enderRenderer, enderStore
         );
         try {
-            service.context.handler("enderchest")
-                .handle(commandContext(service.context.gateway, "enderchest", "", PrincipalRole.MEMBER))
+            service.context.handler("我的末影箱")
+                .handle(commandContext(service.context.gateway, "我的末影箱", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(InventoryRenderMetadata.Freshness.OFFLINE_SNAPSHOT, freshness.get());
             assertEquals("ender-chest.png", service.context.gateway.lastFileName);
@@ -612,8 +657,8 @@ class InventoryAddonSessionTest {
             service, descriptor(), config(), new MockInventoryDataSource("mock"), offline, fakeRenderer(), null, store
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(
                 "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。",
@@ -646,8 +691,8 @@ class InventoryAddonSessionTest {
             service, descriptor(), config(), new MockInventoryDataSource("mock"), offline, fakeRenderer(), null, store
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals(
                 "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。",
@@ -677,8 +722,8 @@ class InventoryAddonSessionTest {
             fakeRenderer()
         );
         try {
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。", service.context.gateway.lastText);
             assertEquals(0, sourceCalls.get());
@@ -686,8 +731,8 @@ class InventoryAddonSessionTest {
             service.context.bind(
                 "group-open-id", "openid", "Steve", BindingVerificationState.IDENTITY_CHANGED
             );
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。", service.context.gateway.lastText);
             assertEquals(0, sourceCalls.get());
@@ -695,8 +740,8 @@ class InventoryAddonSessionTest {
             service.context.bind(
                 "group-open-id", "openid", "Steve", BindingVerificationState.REVOKED
             );
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。", service.context.gateway.lastText);
             assertEquals(0, sourceCalls.get());
@@ -704,8 +749,8 @@ class InventoryAddonSessionTest {
             service.context.bind(
                 "group-open-id", "openid", "Steve", BindingVerificationState.LEGACY_UNVERIFIED
             );
-            service.context.handler("inventory")
-                .handle(commandContext(service.context.gateway, "inventory", "", PrincipalRole.MEMBER))
+            service.context.handler("我的背包")
+                .handle(commandContext(service.context.gateway, "我的背包", "", PrincipalRole.MEMBER))
                 .toCompletableFuture().get();
             assertEquals("当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。", service.context.gateway.lastText);
             assertEquals(0, sourceCalls.get());
@@ -834,11 +879,11 @@ class InventoryAddonSessionTest {
         yaml.set("command.name", "inventorytest");
         yaml.set("command.aliases", Collections.singletonList("invtest"));
         yaml.set("command.publish-to-menu", false);
-        yaml.set("online-command.name", "inventory");
-        yaml.set("online-command.aliases", java.util.Arrays.asList("inv", "我的背包"));
+        yaml.set("online-command.name", "我的背包");
+        yaml.set("online-command.aliases", Collections.emptyList());
         yaml.set("online-command.publish-to-menu", false);
-        yaml.set("ender-chest-command.name", "enderchest");
-        yaml.set("ender-chest-command.aliases", java.util.Arrays.asList("ec", "我的末影箱"));
+        yaml.set("ender-chest-command.name", "我的末影箱");
+        yaml.set("ender-chest-command.aliases", Collections.emptyList());
         yaml.set("ender-chest-command.publish-to-menu", false);
         yaml.set("mock.player-name", "MockPlayer");
         yaml.set("mock.source-server", "test");
@@ -877,7 +922,7 @@ class InventoryAddonSessionTest {
         yaml.set("messages.player-state-changed", "玩家状态发生变化，请重新查询。");
         yaml.set("messages.not-authorized", "权限不足，无法查询在线玩家背包。");
         yaml.set("messages.cooldown", "查询过于频繁，请稍后再试。");
-        yaml.set("messages.binding-required", "你还没有绑定 Minecraft 账号，请先使用 /绑定 <游戏ID>。");
+        yaml.set("messages.binding-required", "你还没有绑定 Minecraft 账号，请先在游戏内使用 /authcode 获取验证码，再发送 /绑定 <验证码>。");
         yaml.set("messages.binding-verification-required", "当前绑定尚未完成 Minecraft 账号验证，暂时不能查询背包。");
         yaml.set("messages.offline-snapshot-missing", "暂时没有该玩家的离线背包快照，请等待玩家至少登录服务器一次。");
         yaml.set("messages.offline-legacy-denied", "当前旧版绑定未完成游戏内验证，不能读取持久化离线背包快照。");
@@ -900,7 +945,7 @@ class InventoryAddonSessionTest {
     }
 
     private static CommandContext commandContext(FakeGateway gateway) {
-        return commandContext(gateway, "inventorytest", "", PrincipalRole.MEMBER);
+        return commandContext(gateway, "我的背包", "", PrincipalRole.MEMBER);
     }
 
     private static CommandContext commandContext(
@@ -994,16 +1039,11 @@ class InventoryAddonSessionTest {
         private final CommandRegistry commands = new CommandRegistry() {
             @Override
             public Registration register(CommandSpec spec, CommandHandler value) {
-                if ("inventorytest".equals(spec.getId())) {
-                    assertEquals(Collections.singletonList("invtest"), spec.getAliases());
+                if ("我的背包".equals(spec.getId())) {
+                    assertTrue(spec.getAliases().isEmpty());
                     assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
-                } else if ("inventory".equals(spec.getId())) {
-                    assertEquals("inventory", spec.getId());
-                    assertEquals(java.util.Arrays.asList("inv", "我的背包"), spec.getAliases());
-                    assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
-                } else if ("enderchest".equals(spec.getId())) {
-                    assertEquals("enderchest", spec.getId());
-                    assertEquals(java.util.Arrays.asList("ec", "我的末影箱"), spec.getAliases());
+                } else if ("我的末影箱".equals(spec.getId())) {
+                    assertTrue(spec.getAliases().isEmpty());
                     assertEquals(cn.huohuas001.huhobot.api.CommandPermission.ANY, spec.getPermission());
                 } else {
                     assertTrue(
