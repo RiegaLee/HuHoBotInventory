@@ -3,6 +3,7 @@ package cn.huohuas001.huhobot.inventory.renderer;
 import cn.huohuas001.huhobot.inventory.datasource.MockInventoryDataSource;
 import cn.huohuas001.huhobot.inventory.model.InventorySnapshot;
 import cn.huohuas001.huhobot.inventory.model.InventorySlot;
+import cn.huohuas001.huhobot.inventory.model.ItemSnapshot;
 import cn.huohuas001.huhobot.inventory.model.SlotType;
 import cn.huohuas001.huhobot.inventory.skin.DefaultPlayerSkinProvider;
 import cn.huohuas001.huhobot.inventory.skin.PlayerModelRenderer;
@@ -28,9 +29,14 @@ class LayeredBackgroundTest {
 
     @Test
     void rendersBundledMistBlueDefaultWallpaper() throws Exception {
-        Path themeDirectory = THEMES.resolve("faithful32x");
-        Theme theme = ThemeLoader.load(themeDirectory);
+        Path themeDirectory = RendererTestAssets.FAITHFUL_THEME;
+        Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         Path wallpaper = themeDirectory.resolve("default-wallpaper.png");
+        TextureResolver.ResolvedTexture stone = theme.getTextures().resolve(
+            ItemSnapshot.basic("minecraft:stone", 1)
+        );
+        assertEquals(TextureResolver.Source.GENERATED_CACHE, stone.getSource());
+        assertEquals(64, stone.getImage().getWidth());
         BufferedImage inventoryBackground = LayeredBackground.forInventory(
             theme,
             wallpaper,
@@ -111,7 +117,7 @@ class LayeredBackgroundTest {
 
         for (String id : new String[] {"faithful32x"}) {
             Path themeDirectory = THEMES.resolve(id);
-            Theme theme = ThemeLoader.load(themeDirectory);
+            Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
             BufferedImage inventoryBackground = LayeredBackground.forInventory(
                 theme, wallpaperFile, "cover"
             );

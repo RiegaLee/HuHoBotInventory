@@ -35,7 +35,7 @@ class Java2DInventoryRendererTest {
         Paths.get("src", "main", "resources", "themes", "faithful32x");
 
     @Test
-    void rendersValidHeadlessPngAndWritesPreview() throws Exception {
+    void rendersLegacyThemeAsValidHeadlessPng() throws Exception {
         Theme theme = ThemeLoader.load(DEFAULT_THEME);
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("MockPlayer");
         RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot);
@@ -55,14 +55,11 @@ class Java2DInventoryRendererTest {
         assertEquals(704, decoded.getWidth());
         assertEquals(600, decoded.getHeight());
 
-        Path preview = Paths.get("build", "rendered-test-output", "mock-inventory-default.png");
-        Files.createDirectories(preview.getParent());
-        Files.write(preview, bytes);
     }
 
     @Test
     void rendersFaithfulThemeWithNamespacedTexturesAndWritesPrimaryPreview() throws Exception {
-        Theme theme = ThemeLoader.load(FAITHFUL_THEME);
+        Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         assertEquals("faithful32x", theme.getId());
         assertTrue(theme.getAssetPackVersion().contains("Faithful"));
         assertFalse(theme.isDrawTitle());
@@ -85,7 +82,15 @@ class Java2DInventoryRendererTest {
         );
 
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("MockPlayer");
-        RenderResult result = new Java2DInventoryRenderer(theme).render(snapshot);
+        BufferedImage background = LayeredBackground.forInventory(
+            theme,
+            FAITHFUL_THEME.resolve("default-wallpaper.png"),
+            "stretch"
+        );
+        java.awt.Rectangle previewArea = theme.getLayout().getPlayerPreview();
+        BufferedImage player = new PlayerModelRenderer(previewArea.width, previewArea.height)
+            .render(new DefaultPlayerSkinProvider().getFallback());
+        RenderResult result = new Java2DInventoryRenderer(theme, background).render(snapshot, player);
         assertEquals(1359, result.getWidth());
         assertEquals(1017, result.getHeight());
         assertTrue(result.getByteSize() > 10_000);
@@ -187,7 +192,7 @@ class Java2DInventoryRendererTest {
 
     @Test
     void offlineSnapshotRendersTimestampBadgeWithoutChangingSnapshotModel() throws Exception {
-        Theme theme = ThemeLoader.load(FAITHFUL_THEME);
+        Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         InventorySnapshot snapshot = new MockInventoryDataSource("renderer-test").createSnapshot("Steve");
         java.awt.Rectangle area = theme.getLayout().getPlayerPreview();
         java.awt.Rectangle freshness = theme.getLayout().getFreshness();

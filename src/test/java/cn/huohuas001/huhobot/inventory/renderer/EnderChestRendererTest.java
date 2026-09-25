@@ -17,15 +17,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EnderChestRendererTest {
-    private static final Path THEME = Paths.get("src", "main", "resources", "themes", "faithful32x");
-
     @Test
     void rendersCompactFaithfulThreeRowPngAndOfflineBadge() throws Exception {
-        Theme theme = ThemeLoader.load(THEME);
+        Theme theme = RendererTestAssets.loadProductionFaithfulTheme();
         InventorySnapshot snapshot = new MockInventoryDataSource("ender-render-test")
             .createSnapshot("Steve");
         EnderChestRenderer renderer = new EnderChestRenderer(
-            theme, LayeredBackground.placeholderEnderChest(theme)
+            theme,
+            LayeredBackground.forEnderChest(
+                theme,
+                RendererTestAssets.FAITHFUL_THEME.resolve("default-wallpaper.png"),
+                "cover"
+            )
         );
 
         RenderResult realtime = renderer.render(
