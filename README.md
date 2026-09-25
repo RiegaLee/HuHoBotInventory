@@ -6,6 +6,8 @@
 
 ![默认背包效果](docs/images/inventory-preview.png)
 
+![默认末影箱效果](docs/images/ender-chest-preview.png)
+
 ## 这个插件能做什么
 
 - 查询自己已绑定账号的背包和末影箱。
